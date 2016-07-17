@@ -30,8 +30,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper">
+      <HintPath>Storage\Dapper.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Data.Linq" />
+    <Reference Include="System.Data.SQLite">
+      <HintPath>Storage\System.Data.SQLite.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -44,6 +52,17 @@
     <Compile Include="Project.cs" />
     <Compile Include="ProjectsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Storage\ColumnAttributeTypeMapper.cs" />
+    <Compile Include="Storage\DapperTypeAttribute.cs" />
+    <Compile Include="Storage\DbTypes\DbProject.cs" />
+    <Compile Include="Storage\SqliteDatabaseConnectionString.cs" />
+    <Compile Include="Storage\SqliteJournalModes.cs" />
+    <Compile Include="Storage\SqliteSyncronousModes.cs" />
+    <Compile Include="Storage\TrackDbProvider.cs" />
+    <Compile Include="Storage\TypeMapper.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Storage\trackdb.sqlite" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
