@@ -50,7 +50,6 @@ namespace Core
         }
         private MethodCallResult EnsureProjectsLoaded()
         {
-            fsfsdf
         }
         private MethodCallResult AddProjectToStorage(Project Project)
         {
