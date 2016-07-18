@@ -48,7 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Framework\ApplicationServices.cs" />
     <Compile Include="Framework\MethodCallResult.cs" />
+    <Compile Include="Framework\Native\Kernel32.cs" />
+    <Compile Include="Framework\RegistryHelper.cs" />
+    <Compile Include="Framework\Timer.cs" />
+    <Compile Include="Framework\Wow.cs" />
     <Compile Include="Project.cs" />
     <Compile Include="ProjectsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -60,9 +65,12 @@
     <Compile Include="Storage\SqliteSyncronousModes.cs" />
     <Compile Include="Storage\TrackDbProvider.cs" />
     <Compile Include="Storage\TypeMapper.cs" />
+    <Compile Include="TimeTracker.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Storage\trackdb.sqlite" />
+    <Content Include="Storage\trackdb.sqlite">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

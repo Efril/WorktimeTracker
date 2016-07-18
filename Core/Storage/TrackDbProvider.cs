@@ -37,6 +37,40 @@ namespace Core.Storage
                 return MethodCallResult.CreateException(ex);
             }
         }
+        public MethodCallResult AddProject(ref DbProject Project)
+        {
+            try
+            {
+                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    connection.Open();
+                    Project.Id = connection.ExecuteScalar<int>("INSERT INTO `" + _projectsTableName + "` (Name) VALUES (@Name);SELECT last_insert_rowid();",
+                        new { Name = Project.Name });
+                    return MethodCallResult.Success;
+                }
+            }
+            catch(Exception ex)
+            {
+                return MethodCallResult.CreateException(ex);
+            }
+        }
+        public MethodCallResult UpdateProject(DbProject Project)
+        {
+            try
+            {
+                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    connection.Open();
+                    connection.Execute("UPDATE `" + _projectsTableName + "` SET Name=@Name WHERE rowid=@id",
+                        new { Name = Project.Name, id = Project.Id });
+                    return MethodCallResult.Success;
+                }
+            }
+            catch(Exception ex)
+            {
+                return MethodCallResult.CreateException(ex);
+            }
+        }
 
         #endregion
 
