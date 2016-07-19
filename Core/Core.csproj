@@ -52,11 +52,15 @@
     <Compile Include="Framework\MethodCallResult.cs" />
     <Compile Include="Framework\Native\Kernel32.cs" />
     <Compile Include="Framework\RegistryHelper.cs" />
+    <Compile Include="Framework\SomethingWentWrongEventArgs.cs" />
     <Compile Include="Framework\Timer.cs" />
     <Compile Include="Framework\Wow.cs" />
+    <Compile Include="History.cs" />
+    <Compile Include="HistoryProvider.cs" />
     <Compile Include="Project.cs" />
     <Compile Include="ProjectsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StorageRelatedEntity.cs" />
     <Compile Include="Storage\ColumnAttributeTypeMapper.cs" />
     <Compile Include="Storage\DapperTypeAttribute.cs" />
     <Compile Include="Storage\DbTypes\DbProject.cs" />

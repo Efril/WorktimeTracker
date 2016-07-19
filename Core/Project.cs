@@ -10,10 +10,17 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public class Project
+    public class Project:StorageRelatedEntity
     {
-        private TrackDbProvider _trackDb;
+        #region -> Nested Fields <-
+
         private DbProject _dbProject;
+        protected override bool BoundToStorage
+        {
+            get { return base.BoundToStorage && _dbProject != null; }
+        }
+
+        #endregion
 
         #region -> Interface <-
 
@@ -36,10 +43,10 @@ namespace Core
         internal void  BindToStorage(DbProject DbProject, TrackDbProvider TrackDb)
         {
             Contract.Requires(DbProject != null);
-            Contract.Requires(TrackDb != null);
-            _trackDb = TrackDb;
+            Contract.Requires(DbProject.Id != null);
+            base.BindToStorageBase(TrackDb);
             _dbProject = DbProject;
-            this.TimeTracker.BindToStorage(TrackDb);
+            this.TimeTracker.BindToStorage(DbProject.Id.Value, TrackDb);
         }
         
         #endregion

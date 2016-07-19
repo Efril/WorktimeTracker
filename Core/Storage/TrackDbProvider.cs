@@ -13,12 +13,15 @@ using System.Diagnostics.Contracts;
 
 namespace Core.Storage
 {
-    internal class TrackDbProvider
+    public class TrackDbProvider
     {
         private readonly SqliteDatabaseConnectionString _connectionString;
         private const string _projectsTableName = "tblProjects";
+        private const string _timeTrackingTableName = "tblTimeTracking";
 
         #region -> Interface <-
+
+        #region -> Projects management logic <-
 
         public MethodCallResult GetAllProjects(out DbProject[] Projects)
         {
@@ -64,6 +67,86 @@ namespace Core.Storage
                     connection.Execute("UPDATE `" + _projectsTableName + "` SET Name=@Name WHERE rowid=@id",
                         new { Name = Project.Name, id = Project.Id });
                     return MethodCallResult.Success;
+                }
+            }
+            catch(Exception ex)
+            {
+                return MethodCallResult.CreateException(ex);
+            }
+        }
+
+        #endregion
+
+        public MethodCallResult GetElapsedWorktime(int ProjectId, DateTime Date, out TimeSpan ElapsedWorktime)
+        {
+            try
+            {
+                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    connection.Open();
+                    ElapsedWorktime = TimeSpan.FromSeconds(connection.Query<int>("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND dayOfYear=@dayOfYear;",
+                        new
+                        {
+                            projectId = ProjectId,
+                            dayOfYear = Date.DayOfYear
+                        }).FirstOrDefault());
+                    return MethodCallResult.Success;
+                }
+            }
+            catch(Exception ex)
+            {
+                ElapsedWorktime = TimeSpan.MinValue;
+                return MethodCallResult.CreateException(ex);
+            }
+        }
+        public MethodCallResult SetElapsedWorktime(int ProjectId, DateTime Date, TimeSpan ElapsedWorktime)
+        {
+            try
+            {
+                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                {
+                    connection.Open();
+                    using(IDbTransaction transaction=connection.BeginTransaction())
+                    {
+                        int operationResult;
+                        //Check projectId/dayOfYear combination record exist in the database
+                        if(connection.Query("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND dayOfYear=@dayOfYear;",
+                        new
+                        {
+                            projectId = ProjectId,
+                            dayOfYear = Date.DayOfYear
+                        }, transaction).Any())
+                        {
+                            //Yes, projectId/dayOfYear combination record exist in the database. Update it.
+                            operationResult=connection.Execute("UPDATE `"+_timeTrackingTableName+ "` SET elapsedTimeSeconds=@elapsedTimeSeconds WHERE projectId=@projectId AND dayOfYear=@dayOfYear;",
+                            new
+                            {
+                                elapsedTimeSeconds = ElapsedWorktime.TotalSeconds,
+                                projectId = ProjectId,
+                                dayOfYear = Date.DayOfYear
+                            }, transaction);
+                        }
+                        else
+                        {
+                            //No, projectId/dayOfYear combination record does not exist in the database. Create it.
+                            operationResult= connection.Execute("INSERT INTO `" + _timeTrackingTableName + "` (projectId, dayOfYear, elapsedTimeSeconds) VALUES (@projectId, @dayOfYear, @elapsedTimeSeconds);",
+                                new
+                                {
+                                    projectId = ProjectId,
+                                    dayOfYear = Date.DayOfYear,
+                                    elapsedTimeSeconds = ElapsedWorktime.TotalSeconds
+                                }, transaction);
+                        }
+                        if(operationResult==1)
+                        {
+                            transaction.Commit();
+                            return MethodCallResult.Success;
+                        }
+                        else
+                        {
+                            return MethodCallResult.CreateFail("Unable to update database because of unknown reason.");
+                        }
+                    }
                 }
             }
             catch(Exception ex)

@@ -11,7 +11,7 @@ namespace Core.Storage.DbTypes
 {
     [DapperType]
     [Serializable]
-    internal class DbProject
+    public class DbProject
     {
         [Column(Name = "rowid")]
         public int? Id
