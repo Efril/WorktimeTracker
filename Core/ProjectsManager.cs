@@ -13,13 +13,14 @@ namespace Core
     public class ProjectsManager
     {
         #region -> Nested Fields <-
-
-        private const string _trackDbFileName = "trackdb.sqlite";
+        
         private TrackDbProvider _trackDb;
         private bool _projectsLoaded = false;
         private readonly Dictionary<string, Project> _projects = new Dictionary<string, Project>(StringComparer.OrdinalIgnoreCase);
 
         #endregion
+
+        #region -> Interface <-
 
         public Project[] Projects
         {
@@ -86,6 +87,8 @@ namespace Core
             if (projectAdded) Project.BindToStorage(dbProject, _trackDb);
             return projectAdded;
         }
+
+        #endregion
 
         public ProjectsManager()
         {

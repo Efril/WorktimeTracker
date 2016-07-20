@@ -57,6 +57,8 @@
     <Compile Include="Framework\Wow.cs" />
     <Compile Include="History.cs" />
     <Compile Include="HistoryProvider.cs" />
+    <Compile Include="IWorktimeHistory.cs" />
+    <Compile Include="MonthWorktime.cs" />
     <Compile Include="Project.cs" />
     <Compile Include="ProjectsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -64,12 +66,16 @@
     <Compile Include="Storage\ColumnAttributeTypeMapper.cs" />
     <Compile Include="Storage\DapperTypeAttribute.cs" />
     <Compile Include="Storage\DbTypes\DbProject.cs" />
+    <Compile Include="Storage\DbTypes\DbTimeTracking.cs" />
     <Compile Include="Storage\SqliteDatabaseConnectionString.cs" />
     <Compile Include="Storage\SqliteJournalModes.cs" />
     <Compile Include="Storage\SqliteSyncronousModes.cs" />
+    <Compile Include="Storage\TrackDbConnection.cs" />
     <Compile Include="Storage\TrackDbProvider.cs" />
+    <Compile Include="Storage\TrackDbTransaction.cs" />
     <Compile Include="Storage\TypeMapper.cs" />
     <Compile Include="TimeTracker.cs" />
+    <Compile Include="WeekWorktime.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Storage\trackdb.sqlite">

@@ -37,5 +37,6 @@ namespace Core.Storage.DbTypes
             this.Id = Id;
             this.Name = Name;
         }
+        public DbProject() { }
     }
 }

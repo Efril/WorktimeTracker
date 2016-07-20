@@ -10,16 +10,80 @@ using Dapper;
 using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics.Contracts;
+using System.IO;
 
 namespace Core.Storage
 {
     public class TrackDbProvider
     {
+        class BulkOperation
+        {
+            public TrackDbConnection Connection
+            {
+                get;
+                private set;
+            }
+            public TrackDbTransaction Transaction
+            {
+                get;
+                private set;
+            }
+
+            public BulkOperation(TrackDbConnection Connection, TrackDbTransaction Transaction)
+            {
+                Contract.Requires(Connection != null);
+                Contract.Requires(Transaction != null);
+                this.Connection = Connection;
+                this.Transaction = Transaction;
+            }
+        }
+
+        #region -> TrackDbProvider singleton <-
+
+        private const string _trackDbFileName = "trackdb.sqlite";
+        private static TrackDbProvider _trackDb;
+        public static TrackDbProvider Get()
+        {
+            if(_trackDb==null) _trackDb= new TrackDbProvider(new SqliteDatabaseConnectionString(Path.Combine(ApplicationServices.GetAssemblyFolderPath(), _trackDbFileName)));
+            return _trackDb;
+        }
+
+        #endregion
+
+        #region -> Nested Fields <-
+
         private readonly SqliteDatabaseConnectionString _connectionString;
         private const string _projectsTableName = "tblProjects";
         private const string _timeTrackingTableName = "tblTimeTracking";
 
+        private TrackDbConnection _bulkOperationConnection;
+        private TrackDbTransaction _bulkOperationTransaction;
+        private bool _insideBulkOperation
+        {
+            get { return _bulkOperationConnection != null && _bulkOperationTransaction != null; }
+        }
+
+        #endregion
+
         #region -> Interface <-
+
+        public MethodCallResult BeginBulkOperation()
+        {
+            try
+            {
+                _bulkOperationConnection = new TrackDbConnection(false);
+                _bulkOperationConnection.Open();
+                return MethodCallResult.Success;
+            }
+            catch(Exception ex)
+            {
+                return MethodCallResult.CreateException(ex);
+            }
+        }
+        public MethodCallResult CompleteBulkOperation()
+        {
+
+        }
 
         #region -> Projects management logic <-
 
@@ -170,5 +234,22 @@ namespace Core.Storage
         }
 
         #endregion
+
+        private IDbConnection GetConnection()
+        {
+            
+        }
+        private IDbTransaction GetTransaction()
+        {
+
+        }
+        private MethodCallResult CreateExceptionMethodCallResult(Exception ex)
+        {
+
+        }
+        public MethodCallResult CreateFailedMethodCallResult(Exception ex)
+        {
+
+        }
     }
 }
