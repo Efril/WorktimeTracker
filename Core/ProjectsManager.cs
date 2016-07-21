@@ -10,11 +10,10 @@ using System.Threading.Tasks;
 
 namespace Core
 {
-    public class ProjectsManager
+    public class ProjectsManager: ManagerBase
     {
         #region -> Nested Fields <-
         
-        private TrackDbProvider _trackDb;
         private bool _projectsLoaded = false;
         private readonly Dictionary<string, Project> _projects = new Dictionary<string, Project>(StringComparer.OrdinalIgnoreCase);
 
@@ -27,6 +26,26 @@ namespace Core
             get { return _projects.Values.ToArray(); }
         }
 
+        public MethodCallResult GetProject(string ProjectName, out Project Project)
+        {
+            MethodCallResult projectsLoaded = EnsureProjectsLoaded();
+            if (projectsLoaded)
+            {
+                if(!_projects.TryGetValue(ProjectName, out Project))
+                {
+                    return MethodCallResult.CreateFail("Project `" + ProjectName + "` is unknown.");
+                }
+                else
+                {
+                    return MethodCallResult.Success;
+                }
+            }
+            else
+            {
+                Project = null;
+                return projectsLoaded;
+            }
+        }
         public MethodCallResult CreateProject(string ProjectName, out Project Project)
         {
             MethodCallResult projectsLoaded = EnsureProjectsLoaded();
@@ -65,12 +84,12 @@ namespace Core
             {
                 _projects.Clear();
                 DbProject[] dbProjects;
-                MethodCallResult loadProjectsResult= _trackDb.GetAllProjects(out dbProjects);
+                MethodCallResult loadProjectsResult= TrackDb.GetAllProjects(out dbProjects);
                 if(loadProjectsResult)
                 {
                     foreach(DbProject dbProject in dbProjects)
                     {
-                        _projects.Add(dbProject.Name, new Project(dbProject, _trackDb));
+                        _projects.Add(dbProject.Name, new Project(dbProject, TrackDb));
                     }
                 }
                 return loadProjectsResult;
@@ -83,16 +102,11 @@ namespace Core
         private MethodCallResult AddProjectToStorage(Project Project)
         {
             DbProject dbProject = new DbProject(null, Project.Name);
-            MethodCallResult projectAdded= _trackDb.AddProject(ref dbProject);
-            if (projectAdded) Project.BindToStorage(dbProject, _trackDb);
+            MethodCallResult projectAdded= TrackDb.AddProject(ref dbProject);
+            if (projectAdded) Project.BindToStorage(dbProject, TrackDb);
             return projectAdded;
         }
 
         #endregion
-
-        public ProjectsManager()
-        {
-            _trackDb = new TrackDbProvider(new SqliteDatabaseConnectionString(Path.Combine(ApplicationServices.GetAssemblyFolderPath(), _trackDbFileName)));
-        }
     }
 }

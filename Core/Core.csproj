@@ -48,7 +48,10 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DayWorktimeHistory.cs" />
     <Compile Include="Framework\ApplicationServices.cs" />
+    <Compile Include="Framework\Extensions.cs" />
+    <Compile Include="Framework\HashCalculator.cs" />
     <Compile Include="Framework\MethodCallResult.cs" />
     <Compile Include="Framework\Native\Kernel32.cs" />
     <Compile Include="Framework\RegistryHelper.cs" />
@@ -58,7 +61,8 @@
     <Compile Include="History.cs" />
     <Compile Include="HistoryProvider.cs" />
     <Compile Include="IWorktimeHistory.cs" />
-    <Compile Include="MonthWorktime.cs" />
+    <Compile Include="ManagerBase.cs" />
+    <Compile Include="MonthWorktimeHistory.cs" />
     <Compile Include="Project.cs" />
     <Compile Include="ProjectsManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -75,7 +79,8 @@
     <Compile Include="Storage\TrackDbTransaction.cs" />
     <Compile Include="Storage\TypeMapper.cs" />
     <Compile Include="TimeTracker.cs" />
-    <Compile Include="WeekWorktime.cs" />
+    <Compile Include="WeekWorktimeHistory.cs" />
+    <Compile Include="WorktimeHistoryBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Storage\trackdb.sqlite">

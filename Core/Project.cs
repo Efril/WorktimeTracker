@@ -29,7 +29,11 @@ namespace Core
             get;
             private set;
         }
-
+        
+        public int? ProjectId
+        {
+            get { return _dbProject != null ? _dbProject.Id : null; }
+        }
         private string _name;
         public string Name
         {

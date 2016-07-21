@@ -11,6 +11,7 @@ using System.Data;
 using System.Data.SQLite;
 using System.Diagnostics.Contracts;
 using System.IO;
+using System.Threading;
 
 namespace Core.Storage
 {
@@ -56,34 +57,119 @@ namespace Core.Storage
         private const string _projectsTableName = "tblProjects";
         private const string _timeTrackingTableName = "tblTimeTracking";
 
-        private TrackDbConnection _bulkOperationConnection;
-        private TrackDbTransaction _bulkOperationTransaction;
-        private bool _insideBulkOperation
-        {
-            get { return _bulkOperationConnection != null && _bulkOperationTransaction != null; }
-        }
+        private readonly Dictionary<int, BulkOperation> _bulkOperations = new Dictionary<int, BulkOperation>();
+        private readonly object _bulkOperationsSyncRoot = new object();
 
         #endregion
 
         #region -> Interface <-
 
+        #region -> Bulk operations support <-
+
         public MethodCallResult BeginBulkOperation()
         {
-            try
+            lock (_bulkOperationsSyncRoot)
             {
-                _bulkOperationConnection = new TrackDbConnection(false);
-                _bulkOperationConnection.Open();
-                return MethodCallResult.Success;
-            }
-            catch(Exception ex)
-            {
-                return MethodCallResult.CreateException(ex);
+                Contract.Assume(!_bulkOperations.ContainsKey(Thread.CurrentThread.ManagedThreadId), "Bulk operation already started in this thread.");
+                try
+                {
+                    _bulkOperations.Add(Thread.CurrentThread.ManagedThreadId, CreateBulkOperation());
+                    return MethodCallResult.Success;
+                }
+                catch (Exception ex)
+                {
+                    return MethodCallResult.CreateException(ex);
+                }
             }
         }
         public MethodCallResult CompleteBulkOperation()
         {
-
+            lock (_bulkOperationsSyncRoot)
+            {
+                BulkOperation bulkOperation = null;
+                try
+                {
+                    if (!_bulkOperations.TryGetValue(Thread.CurrentThread.ManagedThreadId, out bulkOperation))
+                    {
+                        return MethodCallResult.CreateFail("Bulk operation not found.");
+                    }
+                    if (bulkOperation.Transaction.IsActive) bulkOperation.Transaction.ManualCommit();
+                    bulkOperation.Connection.ManualDispose();
+                    return MethodCallResult.Success;
+                }
+                catch (Exception ex)
+                {
+                    if (bulkOperation != null && bulkOperation.Connection.State != ConnectionState.Closed && bulkOperation.Connection.State != ConnectionState.Broken)
+                    {
+                        bulkOperation.Connection.ManualDispose();
+                    }
+                    return MethodCallResult.CreateException(ex);
+                }
+                finally
+                {
+                    _bulkOperations.Remove(Thread.CurrentThread.ManagedThreadId);
+                }
+            }
         }
+
+        private BulkOperation CreateBulkOperation()
+        {
+            SQLiteConnection nativeConnection = new SQLiteConnection(_connectionString.ToString());
+            TrackDbConnection connection = new TrackDbConnection(nativeConnection);
+            nativeConnection.Open();
+            TrackDbTransaction transaction = new TrackDbTransaction(nativeConnection.BeginTransaction());
+            BulkOperation bulkOperation = new BulkOperation(connection, transaction);
+            return bulkOperation;
+        }
+        private IDbConnection GetConnection()
+        {
+            lock (_bulkOperationsSyncRoot)
+            {
+                BulkOperation bulkOperation;
+                if (_bulkOperations.TryGetValue(Thread.CurrentThread.ManagedThreadId, out bulkOperation))
+                {
+                    return bulkOperation.Connection;
+                }
+            }
+            SQLiteConnection connection = new SQLiteConnection(_connectionString.ToString());
+            connection.Open();
+            return connection;
+        }
+        private IDbTransaction GetTransaction(IDbConnection Connection)
+        {
+            lock (_bulkOperationsSyncRoot)
+            {
+                BulkOperation bulkOperation;
+                if (_bulkOperations.TryGetValue(Thread.CurrentThread.ManagedThreadId, out bulkOperation) && bulkOperation.Transaction.IsActive)
+                {
+                    return bulkOperation.Transaction;
+                }
+            }
+            return Connection.BeginTransaction();
+        }
+        private MethodCallResult CreateExceptionMethodCallResult(Exception ex)
+        {
+            RollbackBulkTransaction();
+            return MethodCallResult.CreateException(ex);
+        }
+        private MethodCallResult CreateFailedMethodCallResult(string FailReason)
+        {
+            RollbackBulkTransaction();
+            return MethodCallResult.CreateFail(FailReason);
+        }
+        private void RollbackBulkTransaction()
+        {
+            lock (_bulkOperationsSyncRoot)
+            {
+                BulkOperation bulkOperation;
+                if (_bulkOperations.TryGetValue(Thread.CurrentThread.ManagedThreadId, out bulkOperation))
+                {
+                    if (bulkOperation.Transaction.IsActive) bulkOperation.Transaction.Rollback();
+                }
+            }
+        }
+
+        #endregion
 
         #region -> Projects management logic <-
 
@@ -91,7 +177,7 @@ namespace Core.Storage
         {
             try
             {
-                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                using (IDbConnection connection = GetConnection())
                 {
                     connection.Open();
                     Projects = connection.Query<DbProject>("SELECT rowid, * FROM `" + _projectsTableName + "`").ToArray();
@@ -101,14 +187,14 @@ namespace Core.Storage
             catch(Exception ex)
             {
                 Projects = null;
-                return MethodCallResult.CreateException(ex);
+                return CreateExceptionMethodCallResult(ex);
             }
         }
         public MethodCallResult AddProject(ref DbProject Project)
         {
             try
             {
-                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                using (IDbConnection connection = GetConnection())
                 {
                     connection.Open();
                     Project.Id = connection.ExecuteScalar<int>("INSERT INTO `" + _projectsTableName + "` (Name) VALUES (@Name);SELECT last_insert_rowid();",
@@ -118,14 +204,14 @@ namespace Core.Storage
             }
             catch(Exception ex)
             {
-                return MethodCallResult.CreateException(ex);
+                return CreateExceptionMethodCallResult(ex);
             }
         }
         public MethodCallResult UpdateProject(DbProject Project)
         {
             try
             {
-                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                using (IDbConnection connection = GetConnection())
                 {
                     connection.Open();
                     connection.Execute("UPDATE `" + _projectsTableName + "` SET Name=@Name WHERE rowid=@id",
@@ -135,23 +221,26 @@ namespace Core.Storage
             }
             catch(Exception ex)
             {
-                return MethodCallResult.CreateException(ex);
+                return CreateExceptionMethodCallResult(ex);
             }
         }
 
         #endregion
 
+        #region -> Elapsed worktime logic <-
+
         public MethodCallResult GetElapsedWorktime(int ProjectId, DateTime Date, out TimeSpan ElapsedWorktime)
         {
             try
             {
-                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                using (IDbConnection connection = GetConnection())
                 {
                     connection.Open();
-                    ElapsedWorktime = TimeSpan.FromSeconds(connection.Query<int>("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND dayOfYear=@dayOfYear;",
+                    ElapsedWorktime = TimeSpan.FromSeconds(connection.Query<int>("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND year=@year AND dayOfYear=@dayOfYear;",
                         new
                         {
                             projectId = ProjectId,
+                            year = Date.Year,
                             dayOfYear = Date.DayOfYear
                         }).FirstOrDefault());
                     return MethodCallResult.Success;
@@ -160,43 +249,46 @@ namespace Core.Storage
             catch(Exception ex)
             {
                 ElapsedWorktime = TimeSpan.MinValue;
-                return MethodCallResult.CreateException(ex);
+                return CreateExceptionMethodCallResult(ex);
             }
         }
         public MethodCallResult SetElapsedWorktime(int ProjectId, DateTime Date, TimeSpan ElapsedWorktime)
         {
             try
             {
-                using (IDbConnection connection = new SQLiteConnection(_connectionString.ToString()))
+                using (IDbConnection connection = GetConnection())
                 {
                     connection.Open();
-                    using(IDbTransaction transaction=connection.BeginTransaction())
+                    using(IDbTransaction transaction=GetTransaction(connection))
                     {
                         int operationResult;
                         //Check projectId/dayOfYear combination record exist in the database
-                        if(connection.Query("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND dayOfYear=@dayOfYear;",
+                        if(connection.Query("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND year=@year AND dayOfYear=@dayOfYear;",
                         new
                         {
                             projectId = ProjectId,
+                            year=Date.Year,
                             dayOfYear = Date.DayOfYear
                         }, transaction).Any())
                         {
                             //Yes, projectId/dayOfYear combination record exist in the database. Update it.
-                            operationResult=connection.Execute("UPDATE `"+_timeTrackingTableName+ "` SET elapsedTimeSeconds=@elapsedTimeSeconds WHERE projectId=@projectId AND dayOfYear=@dayOfYear;",
+                            operationResult = connection.Execute("UPDATE `" + _timeTrackingTableName + "` SET elapsedTimeSeconds=@elapsedTimeSeconds WHERE projectId=@projectId AND year=@year AND dayOfYear=@dayOfYear;",
                             new
                             {
                                 elapsedTimeSeconds = ElapsedWorktime.TotalSeconds,
                                 projectId = ProjectId,
+                                year = Date.Year,
                                 dayOfYear = Date.DayOfYear
                             }, transaction);
                         }
                         else
                         {
                             //No, projectId/dayOfYear combination record does not exist in the database. Create it.
-                            operationResult= connection.Execute("INSERT INTO `" + _timeTrackingTableName + "` (projectId, dayOfYear, elapsedTimeSeconds) VALUES (@projectId, @dayOfYear, @elapsedTimeSeconds);",
+                            operationResult= connection.Execute("INSERT INTO `" + _timeTrackingTableName + "` (projectId, year, dayOfYear, elapsedTimeSeconds) VALUES (@projectId, @year, @dayOfYear, @elapsedTimeSeconds);",
                                 new
                                 {
                                     projectId = ProjectId,
+                                    year=Date.Year,
                                     dayOfYear = Date.DayOfYear,
                                     elapsedTimeSeconds = ElapsedWorktime.TotalSeconds
                                 }, transaction);
@@ -208,22 +300,28 @@ namespace Core.Storage
                         }
                         else
                         {
-                            return MethodCallResult.CreateFail("Unable to update database because of unknown reason.");
+                            return CreateFailedMethodCallResult("Unable to update database because of unknown reason.");
                         }
                     }
                 }
             }
             catch(Exception ex)
             {
-                return MethodCallResult.CreateException(ex);
+                return CreateExceptionMethodCallResult(ex);
             }
         }
+        /*public MethodCallResult GetElapsedWorktime(int ProjectId, DateTime From, DateTime Till, out DbTimeTracking[] ElapsedTimeTracking)
+        {
+
+        }*/
+
+        #endregion
 
         #endregion
 
         #region -> Constructors <-
 
-        public TrackDbProvider(SqliteDatabaseConnectionString ConnectionString)
+        private TrackDbProvider(SqliteDatabaseConnectionString ConnectionString)
         {
             Contract.Requires(ConnectionString != null);
             _connectionString = ConnectionString;
@@ -234,22 +332,5 @@ namespace Core.Storage
         }
 
         #endregion
-
-        private IDbConnection GetConnection()
-        {
-            
-        }
-        private IDbTransaction GetTransaction()
-        {
-
-        }
-        private MethodCallResult CreateExceptionMethodCallResult(Exception ex)
-        {
-
-        }
-        public MethodCallResult CreateFailedMethodCallResult(Exception ex)
-        {
-
-        }
     }
 }

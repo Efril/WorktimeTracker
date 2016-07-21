@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -13,6 +15,16 @@ namespace Core.Framework
     internal static class ApplicationServices
     {
         private static readonly Dictionary<string, NamedPipeServerStream> _singletonPipes = new Dictionary<string, NamedPipeServerStream>();
+
+        public static string GetFQDN()
+        {
+            string domainName = IPGlobalProperties.GetIPGlobalProperties().DomainName;
+            string hostName = Dns.GetHostName();
+            string fqdn = "";
+            if (!hostName.Contains(domainName)) fqdn = hostName + "." + domainName;
+            else fqdn = hostName;
+            return fqdn;
+        }
 
         public static string GetAssemblyFolderPath()
         {

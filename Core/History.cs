@@ -10,12 +10,10 @@ namespace Core
 {
     public class History: IWorktimeHistory
     {
-        private bool _dataLoaded = false;
-
         #region -> Interface <-
 
-        private MonthWorktime[] _worktimeHistory;
-        public MonthWorktime[] WorktimeHistory
+        private MonthWorktimeHistory[] _worktimeHistory;
+        public MonthWorktimeHistory[] WorktimeHistory
         {
             get
             {
@@ -23,8 +21,8 @@ namespace Core
             }
         }
 
-        private ReadOnlyDictionary<string, MonthWorktime[]> _byProjectsHistory;
-        public ReadOnlyDictionary<string, MonthWorktime[]> ByProjectsHistory
+        private ReadOnlyDictionary<string, MonthWorktimeHistory[]> _byProjectsHistory;
+        public ReadOnlyDictionary<string, MonthWorktimeHistory[]> ByProjectsHistory
         {
             get { return _byProjectsHistory; }
         }
