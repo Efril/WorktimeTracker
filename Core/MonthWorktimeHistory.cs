@@ -44,8 +44,8 @@ namespace Core
             return _hash;
         }
 
-        public MonthWorktimeHistory(int Year, int MonthOfTheYear, WeekWorktimeHistory[] WorktimeByWeeks, DayWorktimeHistory[] WorktimeByDays, ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime, TimeSpan TotalWorktime)
-            :base(ByProjectTotalWorktime, TotalWorktime)
+        public MonthWorktimeHistory(int Year, int MonthOfTheYear, WeekWorktimeHistory[] WorktimeByWeeks, DayWorktimeHistory[] WorktimeByDays, ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime)
+            :base(ByProjectTotalWorktime)
         {
             Contract.Requires(WorktimeByWeeks != null);
             Contract.Requires(WorktimeByWeeks.Length == 4 || WorktimeByWeeks.Length == 5);

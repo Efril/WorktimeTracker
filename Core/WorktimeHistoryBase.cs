@@ -24,11 +24,11 @@ namespace Core
         #region -> Constructors <-
 
         protected WorktimeHistoryBase() { }
-        public WorktimeHistoryBase(ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime, TimeSpan TotalWorktime)
+        public WorktimeHistoryBase(ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime)
         {
             Contract.Requires(ByProjectTotalWorktime != null);
             this.ByProjectTotalWorktime = ByProjectTotalWorktime;
-            this.TotalWorktime = TotalWorktime;
+            this.TotalWorktime = TimeSpan.FromSeconds(ByProjectTotalWorktime.Values.Sum(s => s.TotalSeconds));
         }
 
         #endregion

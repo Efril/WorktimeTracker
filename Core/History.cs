@@ -2,43 +2,37 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Core
 {
-    public class History: IWorktimeHistory
+    public class History: WorktimeHistoryBase
     {
         #region -> Interface <-
-
-        private MonthWorktimeHistory[] _worktimeHistory;
+        
         public MonthWorktimeHistory[] WorktimeHistory
         {
-            get
-            {
-                return _worktimeHistory;
-            }
+            get;
+            private set;
         }
-
-        private ReadOnlyDictionary<string, MonthWorktimeHistory[]> _byProjectsHistory;
         public ReadOnlyDictionary<string, MonthWorktimeHistory[]> ByProjectsHistory
-        {
-            get { return _byProjectsHistory; }
-        }
-
-        private ReadOnlyDictionary<string, TimeSpan> _byProjectTotalWorktime;
-        public ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime
-        {
-            get { return _byProjectTotalWorktime; }
-        }
-
-        public TimeSpan TotalWorktime
         {
             get;
             private set;
         }
 
         #endregion
+
+        public History(MonthWorktimeHistory[] WorktimeHistory, ReadOnlyDictionary<string, MonthWorktimeHistory[]> ByProjectsHistory, ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime)
+            :base(ByProjectTotalWorktime)
+        {
+            Contract.Requires(WorktimeHistory != null);
+            Contract.Requires(ByProjectsHistory != null);
+            this.WorktimeHistory = WorktimeHistory;
+            this.ByProjectsHistory = ByProjectsHistory;
+        }
     }
 }

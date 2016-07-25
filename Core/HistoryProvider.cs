@@ -15,10 +15,6 @@ namespace Core
         class EditableHistoryBase
         {
             public readonly Dictionary<string, TimeSpan> ByProjectsTotalWorktime = new Dictionary<string, TimeSpan>();
-            public TimeSpan CalculateTotalWorktime()
-            {
-                return TimeSpan.FromSeconds(ByProjectsTotalWorktime.Values.Sum(s => s.TotalSeconds));
-            }
         }
         class EditableMonthWorktimeHistory: EditableHistoryBase
         {
@@ -41,7 +37,7 @@ namespace Core
 
             public MonthWorktimeHistory ToMonthWorktimeHistory()
             {
-                return new MonthWorktimeHistory(Year, MonthOfTheYear, WorktimeByWeeks.Select(w => w.ToWeekWorktimeHistory()).ToArray(), WorktimeByDays.Select(d => d.ToDayWorktimeHistory()).ToArray(), new ReadOnlyDictionary<string, TimeSpan>(ByProjectsTotalWorktime), CalculateTotalWorktime());
+                return new MonthWorktimeHistory(Year, MonthOfTheYear, WorktimeByWeeks.Select(w => w.ToWeekWorktimeHistory()).ToArray(), WorktimeByDays.Select(d => d.ToDayWorktimeHistory()).ToArray(), new ReadOnlyDictionary<string, TimeSpan>(ByProjectsTotalWorktime));
             }
 
             public EditableMonthWorktimeHistory(int Year, int MonthOfTheYear)
@@ -69,7 +65,7 @@ namespace Core
 
             public WeekWorktimeHistory ToWeekWorktimeHistory()
             {
-                return new WeekWorktimeHistory(WeekOfTheYear, WorktimeByDays.Select(d => d.ToDayWorktimeHistory()).ToArray(), new ReadOnlyDictionary<string, TimeSpan>(ByProjectsTotalWorktime), CalculateTotalWorktime());
+                return new WeekWorktimeHistory(WeekOfTheYear, WorktimeByDays.Select(d => d.ToDayWorktimeHistory()).ToArray(), new ReadOnlyDictionary<string, TimeSpan>(ByProjectsTotalWorktime));
             }
 
             public EditableWeekWorktimeHistory(int WeekOfTheYear)
@@ -96,7 +92,7 @@ namespace Core
 
             public DayWorktimeHistory ToDayWorktimeHistory()
             {
-                return new DayWorktimeHistory(DayOfWeek, DayOfMonth, new ReadOnlyDictionary<string, TimeSpan>(ByProjectsTotalWorktime), CalculateTotalWorktime());
+                return new DayWorktimeHistory(DayOfWeek, DayOfMonth, new ReadOnlyDictionary<string, TimeSpan>(ByProjectsTotalWorktime));
             }
 
             public EditableDayWorktimeHistory(int DayOfMonth, DayOfWeek DayOfWeek)
@@ -120,6 +116,13 @@ namespace Core
                 while (historyDate <= Till)
                 {
                     int weekNumber = historyDate.GetIso8601WeekOfYear();
+
+                    //Update allProjectsHistory
+                    EditableMonthWorktimeHistory allProjectsMonthHistory;
+                    EditableWeekWorktimeHistory allProjectsWeekHistory;
+                    EditableDayWorktimeHistory allProjectsDayHistory;
+                    GetTimeIntervalHistoryContainers(allProjectsHistory, historyDate, weekNumber, out allProjectsMonthHistory, out allProjectsWeekHistory, out allProjectsDayHistory);
+
                     foreach (string projectName in Projects)
                     {
                         TimeSpan elapsedWorktime;
@@ -132,57 +135,70 @@ namespace Core
 
                         byProjectsTotalWorktime[projectName] += elapsedWorktime;
 
+                        //Update byProjectsHistory
                         List<EditableMonthWorktimeHistory> projectByMonthsHistory;
                         if(!byProjectsHistory.TryGetValue(projectName, out projectByMonthsHistory))
                         {
                             projectByMonthsHistory = new List<EditableMonthWorktimeHistory>();
                             byProjectsHistory.Add(projectName, projectByMonthsHistory);
                         }
-                        EditableMonthWorktimeHistory projectMonth = projectByMonthsHistory.FirstOrDefault(m => m.Year == historyDate.Year && m.MonthOfTheYear == historyDate.Month);
+                        EditableMonthWorktimeHistory projectMonth;
                         EditableWeekWorktimeHistory projectWeek;
                         EditableDayWorktimeHistory projectDay;
-                        if (projectMonth == null)
-                        {
-                            projectMonth = new EditableMonthWorktimeHistory(historyDate.Year, historyDate.Month);
-                            projectByMonthsHistory.Add(projectMonth);
-                            projectWeek = new EditableWeekWorktimeHistory(weekNumber);
-                            projectMonth.WorktimeByWeeks.Add(projectWeek);
-                            projectDay = new EditableDayWorktimeHistory(historyDate.Day, historyDate.DayOfWeek);
-                            projectWeek.WorktimeByDays.Add(projectDay);
-                        }
-                        else
-                        {
-                            projectWeek = projectMonth.WorktimeByWeeks.FirstOrDefault(w => w.WeekOfTheYear == weekNumber);
-                            if (projectWeek == null)
-                            {
-                                projectWeek = new EditableWeekWorktimeHistory(weekNumber);
-                                projectMonth.WorktimeByWeeks.Add(projectWeek);
-                                projectDay = new EditableDayWorktimeHistory(historyDate.Day, historyDate.DayOfWeek);
-                                projectWeek.WorktimeByDays.Add(projectDay);
-                            }
-                            else
-                            {
-                                projectDay = projectWeek.WorktimeByDays.FirstOrDefault(d => d.DayOfMonth == historyDate.Day);
-                                if(projectDay==null)
-                                {
-                                    projectDay = new EditableDayWorktimeHistory(historyDate.Day, historyDate.DayOfWeek);
-                                    projectWeek.WorktimeByDays.Add(projectDay);
-                                }
-                            }
-                        }
+                        GetTimeIntervalHistoryContainers(projectByMonthsHistory, historyDate, weekNumber, out projectMonth, out projectWeek, out projectDay);
                         projectDay.ByProjectsTotalWorktime[projectName] = elapsedWorktime;
                         projectWeek.ByProjectsTotalWorktime[projectName] += elapsedWorktime;
                         projectMonth.ByProjectsTotalWorktime[projectName] += elapsedWorktime;
 
-                        allProjectsHistory!!!!!!
+                        allProjectsMonthHistory.ByProjectsTotalWorktime[projectName] += elapsedWorktime;
+                        allProjectsWeekHistory.ByProjectsTotalWorktime[projectName] += elapsedWorktime;
+                        allProjectsDayHistory.ByProjectsTotalWorktime[projectName] += elapsedWorktime;
                     }
                     historyDate.AddDays(1);
                 }
+                History = new History(allProjectsHistory.Select(m => m.ToMonthWorktimeHistory()).ToArray(), new ReadOnlyDictionary<string, MonthWorktimeHistory[]>(byProjectsHistory.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Select(m => m.ToMonthWorktimeHistory()).ToArray())), new ReadOnlyDictionary<string, TimeSpan>(byProjectsTotalWorktime));
+                return MethodCallResult.Success;
             }
             catch(Exception ex)
             {
                 History = null;
                 return MethodCallResult.CreateException(ex);
+            }
+        }
+        private void GetTimeIntervalHistoryContainers(List<EditableMonthWorktimeHistory> MonthHistoryContainers, DateTime HistoryDate, int HistoryDateWeekOfTheYear, out EditableMonthWorktimeHistory MonthHistoryContainer, out EditableWeekWorktimeHistory WeekHistoryContainer, out EditableDayWorktimeHistory DayHistoryContainer)
+        {
+            MonthHistoryContainer = MonthHistoryContainers.FirstOrDefault(m => m.Year == HistoryDate.Year && m.MonthOfTheYear == HistoryDate.Month);
+            if (MonthHistoryContainer == null)
+            {
+                MonthHistoryContainer = new EditableMonthWorktimeHistory(HistoryDate.Year, HistoryDate.Month);
+                MonthHistoryContainers.Add(MonthHistoryContainer);
+                WeekHistoryContainer = new EditableWeekWorktimeHistory(HistoryDateWeekOfTheYear);
+                MonthHistoryContainer.WorktimeByWeeks.Add(WeekHistoryContainer);
+                DayHistoryContainer = new EditableDayWorktimeHistory(HistoryDate.Day, HistoryDate.DayOfWeek);
+                WeekHistoryContainer.WorktimeByDays.Add(DayHistoryContainer);
+                MonthHistoryContainer.WorktimeByDays.Add(DayHistoryContainer);
+            }
+            else
+            {
+                WeekHistoryContainer = MonthHistoryContainer.WorktimeByWeeks.FirstOrDefault(w => w.WeekOfTheYear == HistoryDateWeekOfTheYear);
+                if (WeekHistoryContainer == null)
+                {
+                    WeekHistoryContainer = new EditableWeekWorktimeHistory(HistoryDateWeekOfTheYear);
+                    MonthHistoryContainer.WorktimeByWeeks.Add(WeekHistoryContainer);
+                    DayHistoryContainer = new EditableDayWorktimeHistory(HistoryDate.Day, HistoryDate.DayOfWeek);
+                    WeekHistoryContainer.WorktimeByDays.Add(DayHistoryContainer);
+                    MonthHistoryContainer.WorktimeByDays.Add(DayHistoryContainer);
+                }
+                else
+                {
+                    DayHistoryContainer = WeekHistoryContainer.WorktimeByDays.FirstOrDefault(d => d.DayOfMonth == HistoryDate.Day);
+                    if (DayHistoryContainer == null)
+                    {
+                        DayHistoryContainer = new EditableDayWorktimeHistory(HistoryDate.Day, HistoryDate.DayOfWeek);
+                        WeekHistoryContainer.WorktimeByDays.Add(DayHistoryContainer);
+                        MonthHistoryContainer.WorktimeByDays.Add(DayHistoryContainer);
+                    }
+                }
             }
         }
         private MethodCallResult GetProjectWorktimeElapsed(string ProjectName, DateTime Date, ProjectsManager ProjectsManager, out TimeSpan ElapsedWorktime)

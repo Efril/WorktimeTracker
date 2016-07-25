@@ -40,8 +40,8 @@ namespace Core
 
         #region -> Constructors <-
 
-        public DayWorktimeHistory(DayOfWeek DayOfWeek, int DayOfMonth, ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime, TimeSpan TotalWorktime)
-            :base(ByProjectTotalWorktime, TotalWorktime)
+        public DayWorktimeHistory(DayOfWeek DayOfWeek, int DayOfMonth, ReadOnlyDictionary<string, TimeSpan> ByProjectTotalWorktime)
+            :base(ByProjectTotalWorktime)
         {
             Contract.Requires(ByProjectTotalWorktime != null);
             this.DayOfWeek = DayOfWeek;

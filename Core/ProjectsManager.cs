@@ -21,11 +21,42 @@ namespace Core
 
         #region -> Interface <-
 
-        public Project[] Projects
+        public MethodCallResult GetAllProjects(out Project[] Projects)
         {
-            get { return _projects.Values.ToArray(); }
+            MethodCallResult ensureProjectsLoadedResult= EnsureProjectsLoaded();
+            if(!ensureProjectsLoadedResult)
+            {
+                Projects = new Project[0];
+                return ensureProjectsLoadedResult;
+            }
+            else
+            {
+                Projects = _projects.Values.ToArray();
+                return MethodCallResult.Success;
+            }
         }
 
+        public MethodCallResult DeleteProject(string ProjectName)
+        {
+            MethodCallResult projectsLoaded = EnsureProjectsLoaded();
+            if (projectsLoaded)
+            {
+                Project projectToDelete;
+                if (GetProject(ProjectName, out projectToDelete))
+                {
+                    MethodCallResult projectDeleted = TrackDb.DeleteProject(projectToDelete.ProjectId.Value);
+                    return projectDeleted;
+                }
+                else
+                {
+                    return MethodCallResult.Success;
+                }
+            }
+            else
+            {
+                return projectsLoaded;
+            }
+        }
         public MethodCallResult GetProject(string ProjectName, out Project Project)
         {
             MethodCallResult projectsLoaded = EnsureProjectsLoaded();

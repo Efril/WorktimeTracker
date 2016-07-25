@@ -52,7 +52,12 @@ namespace Core
             _dbProject = DbProject;
             this.TimeTracker.BindToStorage(DbProject.Id.Value, TrackDb);
         }
-        
+
+        public override string ToString()
+        {
+            return Name;
+        }
+
         #endregion
 
         #region -> Constructors <-

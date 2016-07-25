@@ -1,0 +1,17 @@
+﻿<UserControl
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:WpfGui"
+             xmlns:Framework="clr-namespace:WpfGui.Framework" x:Class="WpfGui.ProjectsSelector"
+             mc:Ignorable="d" 
+             d:DesignHeight="30.484" d:DesignWidth="293.676" Loaded="UserControl_Loaded">
+    <Grid>
+        <Framework:ImageButton x:Name="btnAddNewProject" HorizontalAlignment="Left" Margin="58,4,0,0" VerticalAlignment="Top" Width="22" ToolTip="Add new Project" Image="Images/Plus.png" Height="22" RenderTransformOrigin="0.393,1.679" IsBehaveAsRadioButton="True"/>
+        <ComboBox x:Name="cbProjects" Margin="85,4,2,0" VerticalAlignment="Top" SelectionChanged="cbProjects_SelectionChanged"/>
+        <Framework:ImageButton x:Name="btnDeleteProject" HorizontalAlignment="Left" Margin="31,4,0,0" VerticalAlignment="Top" Width="22" ToolTip="Add new Project" Image="Images/Minus.png" Height="22" RenderTransformOrigin="0.393,1.679" Visibility="Hidden"/>
+        <Framework:ImageButton x:Name="btnRenameProject" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="22" ToolTip="Add new Project" Image="Images/Rename.png" Height="22" RenderTransformOrigin="0.393,1.679" Visibility="Hidden" IsBehaveAsRadioButton="True"/>
+
+    </Grid>
+</UserControl>

@@ -224,6 +224,27 @@ namespace Core.Storage
                 return CreateExceptionMethodCallResult(ex);
             }
         }
+        public MethodCallResult DeleteProject(int ProjectId)
+        {
+            try
+            {
+                using (IDbConnection connection = GetConnection())
+                {
+                    connection.Open();
+                    using (IDbTransaction transaction = GetTransaction(connection))
+                    {
+                        connection.Execute("DELETE FROM `" + _projectsTableName + "` WHERE rowid=@projectId", new { projectId = ProjectId }, transaction);
+                        connection.Execute("DELETE FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId", new { projectId = ProjectId }, transaction);
+                        transaction.Commit();
+                        return MethodCallResult.Success;
+                    }
+                }
+            }
+            catch(Exception ex)
+            {
+                return CreateExceptionMethodCallResult(ex);
+            }
+        }
 
         #endregion
 
