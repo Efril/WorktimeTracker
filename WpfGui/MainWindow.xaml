@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfGui"
         xmlns:myns="clr-namespace:WpfGui.Framework"
         mc:Ignorable="d"
-        Title="MainWindow" UseLayoutRounding="True" Height="146.75" Width="502" ShowInTaskbar="False" SnapsToDevicePixels="True" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2">
+        Title="MainWindow" UseLayoutRounding="True" Height="160.75" Width="502" ShowInTaskbar="False" SnapsToDevicePixels="True" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2" Loaded="Window_Loaded">
     <Window.Resources>
         <ContextMenu x:Key="trayMenu">
             <MenuItem x:Name="showHideMenuItem" Header="Show" Click="showHideMenuItem_Click" />
@@ -15,11 +15,18 @@
             <MenuItem x:Name="exitMenuItem" Header="Exit" Click="exitMenuItem_Click" />
         </ContextMenu>
     </Window.Resources>
+    <StackPanel>
     <Grid>
-        <myns:ImageButton x:Name="btnAddNewProject" HorizontalAlignment="Left" Margin="53,38,0,0" VerticalAlignment="Top" Width="22" ToolTip="Add new Project" Image="Images/Plus.png" Height="22" RenderTransformOrigin="0.393,1.679"/>
-        <ComboBox x:Name="comboBox" HorizontalAlignment="Left" Margin="80,38,0,0" VerticalAlignment="Top" Width="120"/>
-        <myns:ImageButton x:Name="imageButton" HorizontalAlignment="Right" Width="22" ToolTip="Minimize" Height="22" Image="Images/Minimize.png" VerticalAlignment="Top" Margin="0,1,1,0"/>
-        <myns:ImageButton x:Name="imageButton_Copy" HorizontalAlignment="Right" Width="22" ToolTip="Report" Height="22" Image="Images/Report.png" VerticalAlignment="Top" Margin="0,1,28,0"/>
-
-    </Grid>
+        <myns:ImageButton x:Name="btnMinimize" HorizontalAlignment="Right" Width="22" ToolTip="Minimize" Height="22" Image="Images/Minimize.png" VerticalAlignment="Top" Margin="0,1,1,0" Click="imageButton_Click"/>
+        <myns:ImageButton x:Name="btnReport" HorizontalAlignment="Right" Width="22" ToolTip="Report" Height="22" Image="Images/Report.png" VerticalAlignment="Top" Margin="0,1,28,0"/>
+        </Grid>
+        <StackPanel Orientation="Vertical" Height="41">
+            <Label x:Name="lblProjectName"  HorizontalContentAlignment="Center" Margin="10,0,10,0">
+                <myns:TextBlock x:Name="lblSelectedProjectName" FontSize="16" TextDecorations="Underline" Cursor="Hand" Click="lblSelectedProjectName_Click">Click to select project</myns:TextBlock>
+            </Label>
+            <local:ProjectsSelector x:Name="projectSelector" Margin="10,0,10,0" Visibility="Collapsed"/>
+        </StackPanel>
+        <Label x:Name="lblErrorMessage" FontSize="14" Content="Empty error message" Margin="10,0,10,0" Foreground="Red" Visibility="Collapsed">
+        </Label>
+    </StackPanel>
 </Window>

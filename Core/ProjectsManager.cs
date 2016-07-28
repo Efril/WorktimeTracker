@@ -57,6 +57,38 @@ namespace Core
                 return projectsLoaded;
             }
         }
+        public MethodCallResult RenameProject(Project Project, string UpdatedProjectName)
+        {
+            MethodCallResult projectsLoaded = EnsureProjectsLoaded();
+            if (projectsLoaded)
+            {
+                if (_projects.ContainsKey(UpdatedProjectName))
+                {
+                    return MethodCallResult.CreateFail("Project '" + UpdatedProjectName + "' already exist.");
+                }
+                else
+                {
+                    string projectOriginalName = Project.Name;
+                    DbProject updatedProject = Project.GetDbProject();
+                    updatedProject.Name = UpdatedProjectName;
+                    MethodCallResult updateResult = TrackDb.UpdateProject(updatedProject);
+                    if (updateResult)
+                    {
+                        _projects.Remove(projectOriginalName);
+                        _projects.Add(Project.Name, Project);
+                        return MethodCallResult.Success;
+                    }
+                    else
+                    {
+                        return updateResult;
+                    }
+                }
+            }
+            else
+            {
+                return projectsLoaded;
+            }
+        }
         public MethodCallResult GetProject(string ProjectName, out Project Project)
         {
             MethodCallResult projectsLoaded = EnsureProjectsLoaded();

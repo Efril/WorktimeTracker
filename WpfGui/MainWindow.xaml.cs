@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Core;
+using Core.Framework;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -21,8 +23,9 @@ namespace WpfGui
     /// </summary>
     public partial class MainWindow : Window
     {
-        System.Windows.Forms.NotifyIcon _trayIcon = new System.Windows.Forms.NotifyIcon();
-
+        private System.Windows.Forms.NotifyIcon _trayIcon = new System.Windows.Forms.NotifyIcon();
+        private ProjectsManager _projectsManager;
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -30,6 +33,7 @@ namespace WpfGui
             this.Visibility = Visibility.Hidden;
 
             InitializeTrayIcon();
+            _projectsManager = new ProjectsManager();
         }
 
         #region -> Tray icon and menu logic <-
@@ -93,6 +97,31 @@ namespace WpfGui
         {
             ContextMenu trayMenu = e.OriginalSource as ContextMenu;
             trayMenu.IsOpen = false;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            projectSelector.Initialize(_projectsManager);
+            
+            LayoutWindow();
+        }
+        private void LayoutWindow()
+        {
+            double locationTop, locationLeft;
+            LayoutManager.GetAboveTrayNotificationAreaWindowPosition(this.Width, this.Height, SystemParameters.PrimaryScreenWidth, SystemParameters.PrimaryScreenHeight, out locationTop, out locationLeft);
+            this.Top = locationTop;
+            this.Left = locationLeft;
+        }
+
+        private void imageButton_Click(object sender, RoutedEventArgs e)
+        {
+            this.Hide();
+        }
+
+        private void lblSelectedProjectName_Click(object sender, RoutedEventArgs e)
+        {
+            lblSelectedProjectName.Visibility = Visibility.Collapsed;
+            projectSelector.Visibility = Visibility.Visible;
         }
     }
 }

@@ -14,5 +14,24 @@ namespace WpfGui.Framework
         {
             btn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
         }
+        public static void SelectAll(this ComboBox ComboBox)
+        {
+            TextBox textBox = (ComboBox.Template.FindName("PART_EditableTextBox", ComboBox) as TextBox);
+            if (textBox != null && !ComboBox.IsDropDownOpen)
+            {
+                Application.Current.Dispatcher.BeginInvoke(new Action(() => {
+                    textBox.SelectAll();
+                    textBox.Focus();
+                }));
+            }
+        }
+        public static void ForceFocus(this ComboBox ComboBox)
+        {
+            TextBox textBox = (ComboBox.Template.FindName("PART_EditableTextBox", ComboBox) as TextBox);
+            if(textBox!=null && !ComboBox.IsDropDownOpen)
+            {
+                textBox.Focus();
+            }
+        }
     }
 }

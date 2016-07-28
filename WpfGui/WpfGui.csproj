@@ -69,6 +69,7 @@
     <Compile Include="Framework\Extensions.cs" />
     <Compile Include="Framework\ImageButton.cs" />
     <Compile Include="Framework\RoutedEventHandler.cs" />
+    <Compile Include="Framework\TextBlock.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

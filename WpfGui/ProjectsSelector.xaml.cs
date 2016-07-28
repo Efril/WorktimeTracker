@@ -16,6 +16,7 @@ using System.Windows.Shapes;
 using Core;
 using System.Diagnostics.Contracts;
 using WpfGui.Properties;
+using WpfGui.Framework;
 
 namespace WpfGui
 {
@@ -24,6 +25,10 @@ namespace WpfGui
     /// </summary>
     public partial class ProjectsSelector : UserControl
     {
+        private bool _initialized
+        {
+            get { return _projectsManager != null; }
+        }
         private ProjectsManager _projectsManager;
 
         public Project SelectedProject
@@ -60,6 +65,8 @@ namespace WpfGui
             btnAddNewProject.CheckedChanged += BtnAddNewProject_CheckedChanged;
             btnRenameProject.CheckedChanged += BtnRenameProject_CheckedChanged;
             btnDeleteProject.Click += BtnDeleteProject_Click;
+
+            //TextBox box = cbProjects.Template.FindName("PART_EditableTextBox", cbProjects) as TextBox;
         }
 
         #region -> Handling buttons <-
@@ -75,17 +82,19 @@ namespace WpfGui
         private void BtnRenameProject_CheckedChanged(object sender, RoutedEventArgs e)
         {
             cbProjects.IsEditable = true;
+            cbProjects.SelectAll();
         }
         private void BtnAddNewProject_CheckedChanged(object sender, RoutedEventArgs e)
         {
             cbProjects.IsEditable = true;
+            cbProjects.ForceFocus();
         }
 
         #endregion
 
         private void UserControl_Loaded(object sender, RoutedEventArgs e)
         {
-            ReloadProjects();
+            if(_initialized) ReloadProjects();
         }
         private bool ReloadProjects()
         {
@@ -111,6 +120,61 @@ namespace WpfGui
             Visibility buttonsVisible = cbProjects.SelectedItem != null ? Visibility.Visible : Visibility.Hidden;
             btnDeleteProject.Visibility = buttonsVisible;
             btnRenameProject.Visibility = buttonsVisible;
+        }
+        private void cbProjects_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (cbProjects.IsEditable)
+            {
+                switch (e.Key)
+                {
+                    case Key.Enter:
+                        {
+                            MethodCallResult operationSuccessfull;
+                            if (cbProjects.SelectedItem != null)
+                            {
+                                //project about to be renamed
+                                operationSuccessfull= _projectsManager.RenameProject(cbProjects.SelectedItem as Project, cbProjects.Text.Trim());
+                                if (operationSuccessfull)
+                                {
+                                    cbProjects.IsEditable = false;
+                                    btnRenameProject.IsChecked = false;
+                                }
+                            }
+                            else
+                            {
+                                //project about to be added
+                                Project createdProject;
+                                operationSuccessfull = _projectsManager.CreateProject(cbProjects.Text.Trim(), out createdProject);
+                                if(operationSuccessfull)
+                                {
+                                    cbProjects.IsEditable = false;
+                                    Project[] projectsSource;
+                                    _projectsManager.GetAllProjects(out projectsSource);
+                                    cbProjects.ItemsSource = projectsSource;
+                                    cbProjects.SelectedItem = createdProject;
+                                    btnAddNewProject.IsChecked = false;
+                                }
+                            }
+                            if(!operationSuccessfull)
+                            {
+                                OnSomethingWentWrong(operationSuccessfull.ToString());
+                            }
+                            break;
+                        }
+                    case Key.Escape:
+                        {
+                            cbProjects.IsEditable = false;
+                            btnAddNewProject.IsChecked = false;
+                            btnRenameProject.IsChecked = false;
+                            break;
+                        }
+                }
+            }
+        }
+
+        private void cbProjects_IsKeyboardFocusedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            TextBox box = cbProjects.Template.FindName("PART_EditableTextBox", cbProjects) as TextBox;
         }
     }
 }

@@ -52,8 +52,14 @@
     <Compile Include="Framework\ApplicationServices.cs" />
     <Compile Include="Framework\Extensions.cs" />
     <Compile Include="Framework\HashCalculator.cs" />
+    <Compile Include="Framework\LayoutManager.cs" />
     <Compile Include="Framework\MethodCallResult.cs" />
+    <Compile Include="Framework\Native\APPBARDATA.cs" />
     <Compile Include="Framework\Native\Kernel32.cs" />
+    <Compile Include="Framework\Native\RECT.cs" />
+    <Compile Include="Framework\Native\Shell32.cs" />
+    <Compile Include="Framework\Native\ShellApi.cs" />
+    <Compile Include="Framework\Native\SHFILEINFO.cs" />
     <Compile Include="Framework\RegistryHelper.cs" />
     <Compile Include="Framework\SomethingWentWrongEventArgs.cs" />
     <Compile Include="Framework\Timer.cs" />

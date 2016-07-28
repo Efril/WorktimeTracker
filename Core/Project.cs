@@ -53,6 +53,12 @@ namespace Core
             this.TimeTracker.BindToStorage(DbProject.Id.Value, TrackDb);
         }
 
+        protected internal DbProject GetDbProject()
+        {
+            Contract.Assume(BoundToStorage, "Project not bound to storage.");
+            return _dbProject;
+        }
+
         public override string ToString()
         {
             return Name;

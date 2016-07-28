@@ -6,6 +6,8 @@
              StartupUri="MainWindow.xaml">
     <Application.Resources>
         <Style TargetType="{x:Type my:ImageButton}">
+            <Setter Property="ClickedBackground" Value="DarkGray"/>
+            <Setter Property="MouseHoverBackground" Value="LightGray"/>
             <Setter Property="OverridesDefaultStyle" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
