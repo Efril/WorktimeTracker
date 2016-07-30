@@ -12,6 +12,11 @@ namespace Core
 {
     public class Project:StorageRelatedEntity
     {
+        public static bool AreTheSame(Project Project1, Project Project2)
+        {
+            return (Project1 == null && Project2 == null) || (Project1!=null && Project2!=null && Project1.ProjectId == Project2.ProjectId);
+        }
+
         #region -> Nested Fields <-
 
         private DbProject _dbProject;

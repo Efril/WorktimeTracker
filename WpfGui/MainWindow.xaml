@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfGui"
         xmlns:myns="clr-namespace:WpfGui.Framework"
         mc:Ignorable="d"
-        Title="MainWindow" UseLayoutRounding="True" Height="160.75" Width="502" ShowInTaskbar="False" SnapsToDevicePixels="True" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2" Loaded="Window_Loaded">
+        Title="MainWindow" UseLayoutRounding="True" Height="141.75" Width="502" ShowInTaskbar="False" SnapsToDevicePixels="True" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2" Loaded="Window_Loaded">
     <Window.Resources>
         <ContextMenu x:Key="trayMenu">
             <MenuItem x:Name="showHideMenuItem" Header="Show" Click="showHideMenuItem_Click" />
@@ -20,13 +20,16 @@
         <myns:ImageButton x:Name="btnMinimize" HorizontalAlignment="Right" Width="22" ToolTip="Minimize" Height="22" Image="Images/Minimize.png" VerticalAlignment="Top" Margin="0,1,1,0" Click="imageButton_Click"/>
         <myns:ImageButton x:Name="btnReport" HorizontalAlignment="Right" Width="22" ToolTip="Report" Height="22" Image="Images/Report.png" VerticalAlignment="Top" Margin="0,1,28,0"/>
         </Grid>
-        <StackPanel Orientation="Vertical" Height="41">
+        <StackPanel Width="Auto" Height="Auto" Orientation="Vertical">
             <Label x:Name="lblProjectName"  HorizontalContentAlignment="Center" Margin="10,0,10,0">
                 <myns:TextBlock x:Name="lblSelectedProjectName" FontSize="16" TextDecorations="Underline" Cursor="Hand" Click="lblSelectedProjectName_Click">Click to select project</myns:TextBlock>
             </Label>
-            <local:ProjectsSelector x:Name="projectSelector" Margin="10,0,10,0" Visibility="Collapsed"/>
+            <local:ProjectsSelector x:Name="projectSelector" Margin="10,0,10,0" SomethingWentWrong="projectSelector_SomethingWentWrong" BeforeAnyAction="projectSelector_BeforeAnyAction" SelectedProjectChanged="projectSelector_SelectedProjectChanged" Visibility="Collapsed"/>
         </StackPanel>
-        <Label x:Name="lblErrorMessage" FontSize="14" Content="Empty error message" Margin="10,0,10,0" Foreground="Red" Visibility="Collapsed">
-        </Label>
+        <Label x:Name="lblErrorMessage" FontSize="14" Content="Empty error message" Margin="10,0,10,0" Foreground="Red" Visibility="Collapsed"/>
+        <StackPanel x:Name="panelWorktimeBlock" Orientation="Horizontal" HorizontalAlignment="Center" IsEnabled="False">
+            <myns:ImageButton x:Name="btnStartStopCounting" Height="42" Width="42" Margin="0,0,10,0" Image="Images/Start.png" ToolTip="Start counting worktime" Click="btnStartStopCounting_Click"/>
+            <myns:TextBlock x:Name="lblWorktimeElapsed" Text="00:00" VerticalAlignment="Center" FontSize="21.333" Margin="10,0,0,0"/>
+        </StackPanel>
     </StackPanel>
 </Window>

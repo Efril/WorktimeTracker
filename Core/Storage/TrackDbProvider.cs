@@ -45,7 +45,7 @@ namespace Core.Storage
         private static TrackDbProvider _trackDb;
         public static TrackDbProvider Get()
         {
-            if(_trackDb==null) _trackDb= new TrackDbProvider(new SqliteDatabaseConnectionString(Path.Combine(ApplicationServices.GetAssemblyFolderPath(), _trackDbFileName)));
+            if(_trackDb==null) _trackDb= new TrackDbProvider(new SqliteDatabaseConnectionString(Path.Combine(ApplicationServices.GetAssemblyFolderPath(), "Storage", _trackDbFileName)));
             return _trackDb;
         }
 
@@ -179,7 +179,6 @@ namespace Core.Storage
             {
                 using (IDbConnection connection = GetConnection())
                 {
-                    connection.Open();
                     Projects = connection.Query<DbProject>("SELECT rowid, * FROM `" + _projectsTableName + "`").ToArray();
                     return MethodCallResult.Success;
                 }
@@ -196,7 +195,6 @@ namespace Core.Storage
             {
                 using (IDbConnection connection = GetConnection())
                 {
-                    connection.Open();
                     Project.Id = connection.ExecuteScalar<int>("INSERT INTO `" + _projectsTableName + "` (Name) VALUES (@Name);SELECT last_insert_rowid();",
                         new { Name = Project.Name });
                     return MethodCallResult.Success;
@@ -213,7 +211,6 @@ namespace Core.Storage
             {
                 using (IDbConnection connection = GetConnection())
                 {
-                    connection.Open();
                     connection.Execute("UPDATE `" + _projectsTableName + "` SET Name=@Name WHERE rowid=@id",
                         new { Name = Project.Name, id = Project.Id });
                     return MethodCallResult.Success;
@@ -230,7 +227,6 @@ namespace Core.Storage
             {
                 using (IDbConnection connection = GetConnection())
                 {
-                    connection.Open();
                     using (IDbTransaction transaction = GetTransaction(connection))
                     {
                         connection.Execute("DELETE FROM `" + _projectsTableName + "` WHERE rowid=@projectId", new { projectId = ProjectId }, transaction);
@@ -256,7 +252,6 @@ namespace Core.Storage
             {
                 using (IDbConnection connection = GetConnection())
                 {
-                    connection.Open();
                     ElapsedWorktime = TimeSpan.FromSeconds(connection.Query<int>("SELECT elapsedTimeSeconds FROM `" + _timeTrackingTableName + "` WHERE projectId=@projectId AND year=@year AND dayOfYear=@dayOfYear;",
                         new
                         {
@@ -279,7 +274,6 @@ namespace Core.Storage
             {
                 using (IDbConnection connection = GetConnection())
                 {
-                    connection.Open();
                     using(IDbTransaction transaction=GetTransaction(connection))
                     {
                         int operationResult;

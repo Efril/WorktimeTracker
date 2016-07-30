@@ -17,6 +17,7 @@ using Core;
 using System.Diagnostics.Contracts;
 using WpfGui.Properties;
 using WpfGui.Framework;
+using System.Windows.Threading;
 
 namespace WpfGui
 {
@@ -25,15 +26,44 @@ namespace WpfGui
     /// </summary>
     public partial class ProjectsSelector : UserControl
     {
+        enum ProjectsSelectorModes
+        {
+            Select, Add, Rename
+        }
+
+        private ProjectsSelectorModes _projectsSelectorMode = ProjectsSelectorModes.Select;
         private bool _initialized
         {
             get { return _projectsManager != null; }
         }
         private ProjectsManager _projectsManager;
 
+        #region -> Interface <-
+
+        private Project _selectedProject;
         public Project SelectedProject
         {
-            get { return cbProjects.SelectedItem as Project; }
+            get { return _selectedProject; }
+            private set
+            {
+                Project originalProject = _selectedProject;
+                _selectedProject = value;
+                if(!Project.AreTheSame(originalProject, _selectedProject))
+                {
+                    OnSelectedProjectChanged();
+                }
+            }
+        }
+        public event EventHandler SelectedProjectChanged;
+        private void OnSelectedProjectChanged()
+        {
+            if (SelectedProjectChanged != null) SelectedProjectChanged(this, new EventArgs());
+        }
+
+        public event EventHandler BeforeAnyAction;
+        private void OnBeforeAnyAction()
+        {
+            if (BeforeAnyAction != null) BeforeAnyAction(this, new EventArgs());
         }
 
         public event EventHandler<SomethingWentWrongEventArgs> SomethingWentWrong;
@@ -50,6 +80,7 @@ namespace WpfGui
 
         public void Click()
         {
+            OnBeforeAnyAction();
             if(cbProjects.SelectedItem==null && cbProjects.Items.Count==0)
             {
                 //In case if no project created yet switch projects combobox to edit mode to allow user to create new one
@@ -58,6 +89,8 @@ namespace WpfGui
             this.Visibility = Visibility.Visible;
         }
 
+        #endregion
+
         public ProjectsSelector()
         {
             InitializeComponent();
@@ -65,29 +98,58 @@ namespace WpfGui
             btnAddNewProject.CheckedChanged += BtnAddNewProject_CheckedChanged;
             btnRenameProject.CheckedChanged += BtnRenameProject_CheckedChanged;
             btnDeleteProject.Click += BtnDeleteProject_Click;
-
-            //TextBox box = cbProjects.Template.FindName("PART_EditableTextBox", cbProjects) as TextBox;
         }
 
         #region -> Handling buttons <-
 
         private void BtnDeleteProject_Click(object sender, RoutedEventArgs e)
         {
+            btnAddNewProject.IsChecked = false;
+            btnRenameProject.IsChecked = false;
             if (SelectedProject != null && MessageBox.Show("Do you really want to delete '" + SelectedProject.Name + "' project? All worktime tracking data will be removed also.", string.Empty, MessageBoxButton.YesNoCancel) == MessageBoxResult.Yes)
             {
                 MethodCallResult projectDeleted = _projectsManager.DeleteProject(SelectedProject.Name);
-                if (projectDeleted) cbProjects.Items.Remove(SelectedProject);
+                if (projectDeleted)
+                {
+                    Project[] projects;
+                    AssignSelectorItemsSource(out projects);
+                }
             }
         }
         private void BtnRenameProject_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            cbProjects.IsEditable = true;
-            cbProjects.SelectAll();
+            if(btnRenameProject.IsChecked)
+            {
+                _projectsSelectorMode = ProjectsSelectorModes.Rename;
+            }
+            else
+            {
+                _projectsSelectorMode = ProjectsSelectorModes.Select;
+            }
+            SwitchComboBoxEditableMode(btnRenameProject);
         }
         private void BtnAddNewProject_CheckedChanged(object sender, RoutedEventArgs e)
         {
-            cbProjects.IsEditable = true;
-            cbProjects.ForceFocus();
+            if (btnAddNewProject.IsChecked)
+            {
+                cbProjects.SelectedIndex = -1;
+                _projectsSelectorMode = ProjectsSelectorModes.Add;
+            }
+            else
+            {
+                _projectsSelectorMode = ProjectsSelectorModes.Select;
+            }
+            SwitchComboBoxEditableMode(btnAddNewProject);
+        }
+        private void SwitchComboBoxEditableMode(ImageButton Button)
+        {
+            OnBeforeAnyAction();
+            cbProjects.IsEditable = Button.IsChecked;
+            if (cbProjects.IsEditable)
+            {
+                Application.Current.DoEvents();
+                cbProjects.SelectAll();
+            }
         }
 
         #endregion
@@ -100,13 +162,7 @@ namespace WpfGui
         {
             Settings.Default.Reload();
             Project[] projects;
-            MethodCallResult getProjectsResult = _projectsManager.GetAllProjects(out projects);
-            if(!getProjectsResult)
-            {
-                OnSomethingWentWrong(getProjectsResult.ToString());
-                return false;
-            }
-            cbProjects.ItemsSource = projects;
+            AssignSelectorItemsSource(out projects);
             if(!string.IsNullOrWhiteSpace(Settings.Default.LastProjectName))
             {
                 Project selectedProject = projects.FirstOrDefault(p => string.Equals(p.Name, Settings.Default.LastProjectName));
@@ -114,12 +170,23 @@ namespace WpfGui
             }
             return true;
         }
+        private MethodCallResult AssignSelectorItemsSource(out Project[] Projects)
+        {
+            MethodCallResult getProjectsResult = _projectsManager.GetAllProjects(out Projects);
+            if (!getProjectsResult)
+            {
+                OnSomethingWentWrong(getProjectsResult.ToString());
+            }
+            cbProjects.ItemsSource = Projects;
+            return getProjectsResult;
+        }
 
         private void cbProjects_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Visibility buttonsVisible = cbProjects.SelectedItem != null ? Visibility.Visible : Visibility.Hidden;
+            Visibility buttonsVisible = cbProjects.SelectedItem != null || _projectsSelectorMode== ProjectsSelectorModes.Rename ? Visibility.Visible : Visibility.Hidden;
             btnDeleteProject.Visibility = buttonsVisible;
             btnRenameProject.Visibility = buttonsVisible;
+            if (_projectsSelectorMode != ProjectsSelectorModes.Rename) this.SelectedProject = cbProjects.SelectedItem as Project;
         }
         private void cbProjects_PreviewKeyUp(object sender, KeyEventArgs e)
         {
@@ -129,31 +196,39 @@ namespace WpfGui
                 {
                     case Key.Enter:
                         {
+                            OnBeforeAnyAction();
                             MethodCallResult operationSuccessfull;
-                            if (cbProjects.SelectedItem != null)
+                            switch (_projectsSelectorMode)
                             {
-                                //project about to be renamed
-                                operationSuccessfull= _projectsManager.RenameProject(cbProjects.SelectedItem as Project, cbProjects.Text.Trim());
-                                if (operationSuccessfull)
-                                {
-                                    cbProjects.IsEditable = false;
-                                    btnRenameProject.IsChecked = false;
-                                }
-                            }
-                            else
-                            {
-                                //project about to be added
-                                Project createdProject;
-                                operationSuccessfull = _projectsManager.CreateProject(cbProjects.Text.Trim(), out createdProject);
-                                if(operationSuccessfull)
-                                {
-                                    cbProjects.IsEditable = false;
-                                    Project[] projectsSource;
-                                    _projectsManager.GetAllProjects(out projectsSource);
-                                    cbProjects.ItemsSource = projectsSource;
-                                    cbProjects.SelectedItem = createdProject;
-                                    btnAddNewProject.IsChecked = false;
-                                }
+                                case ProjectsSelectorModes.Rename:
+                                    {
+                                        //project about to be renamed
+                                        operationSuccessfull = _projectsManager.RenameProject(SelectedProject, cbProjects.Text.Trim());
+                                        if (operationSuccessfull)
+                                        {
+                                            btnRenameProject.IsChecked = false;
+                                            SelectProject(SelectedProject.Name);
+                                        }
+                                        break;
+                                    }
+                                case ProjectsSelectorModes.Add:
+                                    {
+                                        //project about to be added
+                                        Project createdProject;
+                                        operationSuccessfull = _projectsManager.CreateProject(cbProjects.Text.Trim(), out createdProject);
+                                        if (operationSuccessfull)
+                                        {
+                                            btnAddNewProject.IsChecked = false;
+                                            Project[] projects;
+                                            AssignSelectorItemsSource(out projects);
+                                            SelectProject(createdProject.Name);
+                                        }
+                                        break;
+                                    }
+                                default:
+                                    {
+                                        throw new ApplicationException("Invalid projects selection mode");
+                                    }
                             }
                             if(!operationSuccessfull)
                             {
@@ -163,7 +238,7 @@ namespace WpfGui
                         }
                     case Key.Escape:
                         {
-                            cbProjects.IsEditable = false;
+                            OnBeforeAnyAction();
                             btnAddNewProject.IsChecked = false;
                             btnRenameProject.IsChecked = false;
                             break;
@@ -171,10 +246,9 @@ namespace WpfGui
                 }
             }
         }
-
-        private void cbProjects_IsKeyboardFocusedChanged(object sender, DependencyPropertyChangedEventArgs e)
+        private void SelectProject(string ProjectName)
         {
-            TextBox box = cbProjects.Template.FindName("PART_EditableTextBox", cbProjects) as TextBox;
+            cbProjects.SelectedItem = cbProjects.Items.Cast<Project>().FirstOrDefault(p => p.Name.Equals(ProjectName, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

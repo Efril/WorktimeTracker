@@ -121,7 +121,61 @@ namespace WpfGui
         private void lblSelectedProjectName_Click(object sender, RoutedEventArgs e)
         {
             lblSelectedProjectName.Visibility = Visibility.Collapsed;
-            projectSelector.Visibility = Visibility.Visible;
+            projectSelector.Click();
+        }
+
+        private void projectSelector_SomethingWentWrong(object sender, SomethingWentWrongEventArgs e)
+        {
+            DisplayErrorMessage(e.Message);
+        }
+        private void projectSelector_BeforeAnyAction(object sender, EventArgs e)
+        {
+            EnsureErrorMessageHidden();
+        }
+
+        private void DisplayErrorMessage(string Message)
+        {
+            lblErrorMessage.Content = Message;
+            lblErrorMessage.Visibility = Visibility.Visible;
+        }
+        private void EnsureErrorMessageHidden()
+        {
+            lblErrorMessage.Visibility = Visibility.Hidden;
+        }
+        private void projectSelector_SelectedProjectChanged(object sender, EventArgs e)
+        {
+            TimeSpan worktimeToDisplay;
+            if(projectSelector.SelectedProject!=null)
+            {
+                panelWorktimeBlock.IsEnabled = true;
+                worktimeToDisplay = projectSelector.SelectedProject.TimeTracker.GetElapsedToday();
+            }
+            else
+            {
+                panelWorktimeBlock.IsEnabled = false;
+                worktimeToDisplay = new TimeSpan();
+            }
+
+            string worktimeString = worktimeToDisplay.ToString(@"hh\:mm");
+            lblWorktimeElapsed.Text = worktimeString;
+            lblWorktimeElapsed.ToolTip = worktimeString + " elapsed today";
+        }
+        private void btnStartStopCounting_Click(object sender, RoutedEventArgs e)
+        {
+            if (projectSelector.SelectedProject.TimeTracker.Running)
+            {
+                projectSelector.SelectedProject.TimeTracker.Stop();
+                btnStartStopCounting.Image = (ImageSource)new ImageSourceConverter().ConvertFromString("Images/Start.png");
+                btnStartStopCounting.ToolTip = "Start counting worktime";
+                _trayIcon.Icon = Properties.Resources.ClockStopped;
+            }
+            else
+            {
+                projectSelector.SelectedProject.TimeTracker.Start();
+                btnStartStopCounting.Image = (ImageSource)new ImageSourceConverter().ConvertFromString("Images/Stop.png");
+                btnStartStopCounting.ToolTip = "Stop counting worktime";
+                _trayIcon.Icon = Properties.Resources.ClockRunning;
+            }
         }
     }
 }

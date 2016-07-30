@@ -14,13 +14,11 @@ namespace WpfGui.Framework
 {
     internal class ImageButton:Button
     {
-        public static readonly DependencyProperty MouseHoverBackgroundProperty = DependencyProperty.Register("MouseHoverBackground", typeof(Brush), typeof(ImageButton));
-        public static readonly DependencyProperty ClickedBackgroundProperty = DependencyProperty.Register("ClickedBackground", typeof(Brush), typeof(ImageButton));
-        public static readonly RoutedEvent CheckedChangedEvent = EventManager.RegisterRoutedEvent("CheckedChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler<CheckedChangedRoutedEventArgs>), typeof(ImageButton));
-
         #region -> Nested Fields <-
 
+        private bool _originalBackgroundSet = false;
         private Brush _originalBackground;
+        //private Brush _previousBackground;
 
         protected Image ImageControl
         {
@@ -32,6 +30,7 @@ namespace WpfGui.Framework
 
         #region -> Interface <-
 
+        public static readonly RoutedEvent CheckedChangedEvent = EventManager.RegisterRoutedEvent("CheckedChanged", RoutingStrategy.Bubble, typeof(RoutedEventHandler<CheckedChangedRoutedEventArgs>), typeof(ImageButton));
         [Category("Property Changed")]
         public event RoutedEventHandler<CheckedChangedRoutedEventArgs> CheckedChanged
         {
@@ -39,6 +38,7 @@ namespace WpfGui.Framework
             remove { RemoveHandler(CheckedChangedEvent, value); }
         }
 
+        public static readonly DependencyProperty MouseHoverBackgroundProperty = DependencyProperty.Register("MouseHoverBackground", typeof(Brush), typeof(ImageButton));
         public Brush MouseHoverBackground
         {
             get { return (Brush)GetValue(MouseHoverBackgroundProperty); }
@@ -48,6 +48,7 @@ namespace WpfGui.Framework
                 (this.Content as Panel).Background = value;
             }
         }
+        public static readonly DependencyProperty ClickedBackgroundProperty = DependencyProperty.Register("ClickedBackground", typeof(Brush), typeof(ImageButton));
         public Brush ClickedBackground
         {
             get { return (Brush)GetValue(ClickedBackgroundProperty); }
@@ -68,15 +69,22 @@ namespace WpfGui.Framework
                 _isChecked = value;
                 if (originalIsChecked != _isChecked)
                 {
+                    if(!_isChecked) RevertBackground();
                     InvalidateVisual();
                     RaiseEvent(new CheckedChangedRoutedEventArgs(CheckedChangedEvent, IsChecked));
                 }
             }
         }
+        private bool _isCanBeChecked;
         public bool IsCanBeChecked
         {
-            get;
-            set;
+            get { return _isCanBeChecked; }
+            set
+            {
+                bool originalValue = value;
+                _isCanBeChecked = value;
+                if (originalValue && !_isCanBeChecked) IsChecked = false;
+            }
         }
         private bool _isBehaveAsRadioButton;
         public bool IsBehaveAsRadioButton
@@ -131,13 +139,35 @@ namespace WpfGui.Framework
 
         private void TemporaryUpdateBackground(Brush UpdatedBackground)
         {
-            if(_originalBackground==null) _originalBackground = Background;
+            if (!_originalBackgroundSet)
+            {
+                _originalBackground = Background;
+                _originalBackgroundSet = true;
+            }
+            //_previousBackground = this.Background;
             this.Background = UpdatedBackground;
         }
-        private void RevertDefaultBackground()
+        private void RevertBackground()
         {
-            this.Background = _originalBackground;
-            _originalBackground = null;
+            /*if (this.Background == _previousBackground)
+            {
+                this.Background = _originalBackground;
+                _originalBackground = null;
+            }
+            else
+            {
+                this.Background = _previousBackground;
+            }*/
+            if (!IsChecked)
+            {
+                this.Background = _originalBackground;
+                _originalBackgroundSet = false;
+                _originalBackground = null;
+            }
+            else
+            {
+                this.Background = ClickedBackground;
+            }
         }
         protected override void OnMouseEnter(MouseEventArgs e)
         {
@@ -152,7 +182,7 @@ namespace WpfGui.Framework
             base.OnMouseLeave(e);
             if(!IsChecked)
             {
-                RevertDefaultBackground();
+                RevertBackground();
             }
         }
         protected override void OnPreviewMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -184,13 +214,13 @@ namespace WpfGui.Framework
                 }
                 else
                 {
-                    RevertDefaultBackground();
+                    RevertBackground();
                 }
                 IsChecked = newIsChecked;
             }
             else
             {
-                RevertDefaultBackground();
+                RevertBackground();
             }
         }
 
