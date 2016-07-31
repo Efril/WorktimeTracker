@@ -6,7 +6,7 @@
              xmlns:local="clr-namespace:WpfGui"
              xmlns:Framework="clr-namespace:WpfGui.Framework" x:Class="WpfGui.ProjectsSelector"
              mc:Ignorable="d" 
-             d:DesignHeight="30.484" d:DesignWidth="293.676" Height="Auto" Loaded="UserControl_Loaded" Background="#FFDC1414">
+             d:DesignHeight="30.484" d:DesignWidth="293.676" Height="Auto" Loaded="UserControl_Loaded">
     <Grid Height="Auto">
         <Framework:ImageButton x:Name="btnAddNewProject" HorizontalAlignment="Left" Margin="58,0,0,0" VerticalAlignment="Top" Width="22" ToolTip="Add new Project" Image="Images/Plus.png" Height="22" IsBehaveAsRadioButton="True"/>
         <ComboBox x:Name="cbProjects" Margin="85,0,2,0" VerticalAlignment="Top" SelectionChanged="cbProjects_SelectionChanged" PreviewKeyUp="cbProjects_PreviewKeyUp"/>

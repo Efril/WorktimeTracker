@@ -10,26 +10,29 @@
     <Window.Resources>
         <ContextMenu x:Key="trayMenu">
             <MenuItem x:Name="showHideMenuItem" Header="Show" Click="showHideMenuItem_Click" />
-            <MenuItem x:Name="startStopTimerMenuItem" Header="Start" Click="startStopTimerMenuItem_Click" />
+            <MenuItem x:Name="startStopTimerMenuItem" Command="local:CustomCommands.SwitchStartStopWorktimeCounting" Header="Start"/>
             <Separator x:Name="separator" Template="{DynamicResource FineSeparator}" />
             <MenuItem x:Name="exitMenuItem" Header="Exit" Click="exitMenuItem_Click" />
         </ContextMenu>
     </Window.Resources>
-    <StackPanel>
-    <Grid>
+    <Window.CommandBindings>
+        <CommandBinding Command="local:CustomCommands.SwitchStartStopWorktimeCounting" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed"/>
+    </Window.CommandBindings>
+    <DockPanel Name="panelMain">
+    <Grid DockPanel.Dock="Top">
         <myns:ImageButton x:Name="btnMinimize" HorizontalAlignment="Right" Width="22" ToolTip="Minimize" Height="22" Image="Images/Minimize.png" VerticalAlignment="Top" Margin="0,1,1,0" Click="imageButton_Click"/>
         <myns:ImageButton x:Name="btnReport" HorizontalAlignment="Right" Width="22" ToolTip="Report" Height="22" Image="Images/Report.png" VerticalAlignment="Top" Margin="0,1,28,0"/>
         </Grid>
-        <StackPanel Width="Auto" Height="Auto" Orientation="Vertical">
-            <Label x:Name="lblProjectName"  HorizontalContentAlignment="Center" Margin="10,0,10,0">
+        <StackPanel DockPanel.Dock="Top" Width="Auto" Height="Auto" Orientation="Vertical">
+            <Label x:Name="lblProjectName"  HorizontalContentAlignment="Center" Margin="10,0,10,0" Background="{x:Null}">
                 <myns:TextBlock x:Name="lblSelectedProjectName" FontSize="16" TextDecorations="Underline" Cursor="Hand" Click="lblSelectedProjectName_Click">Click to select project</myns:TextBlock>
             </Label>
             <local:ProjectsSelector x:Name="projectSelector" Margin="10,0,10,0" SomethingWentWrong="projectSelector_SomethingWentWrong" BeforeAnyAction="projectSelector_BeforeAnyAction" SelectedProjectChanged="projectSelector_SelectedProjectChanged" Visibility="Collapsed"/>
         </StackPanel>
-        <Label x:Name="lblErrorMessage" FontSize="14" Content="Empty error message" Margin="10,0,10,0" Foreground="Red" Visibility="Collapsed"/>
-        <StackPanel x:Name="panelWorktimeBlock" Orientation="Horizontal" HorizontalAlignment="Center" IsEnabled="False">
-            <myns:ImageButton x:Name="btnStartStopCounting" Height="42" Width="42" Margin="0,0,10,0" Image="Images/Start.png" ToolTip="Start counting worktime" Click="btnStartStopCounting_Click"/>
+        <Label x:Name="lblErrorMessage" DockPanel.Dock="Top" FontSize="14" Content="Empty error message" Margin="10,0,10,0" Foreground="Red" Visibility="Collapsed" Background="{x:Null}"/>
+        <StackPanel x:Name="panelWorktimeBlock" DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" IsEnabled="False">
+            <myns:ImageButton x:Name="btnStartStopCounting" Command="local:CustomCommands.SwitchStartStopWorktimeCounting" Height="42" Width="42" Margin="0,0,10,0" Image="Images/Start.png" ToolTip="Start counting worktime"/>
             <myns:TextBlock x:Name="lblWorktimeElapsed" Text="00:00" VerticalAlignment="Center" FontSize="21.333" Margin="10,0,0,0"/>
         </StackPanel>
-    </StackPanel>
+    </DockPanel>
 </Window>

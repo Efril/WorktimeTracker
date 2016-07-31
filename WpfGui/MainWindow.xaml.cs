@@ -23,6 +23,7 @@ namespace WpfGui
     /// </summary>
     public partial class MainWindow : Window
     {
+        private ContextMenu trayMenu;
         private System.Windows.Forms.NotifyIcon _trayIcon = new System.Windows.Forms.NotifyIcon();
         private ProjectsManager _projectsManager;
         
@@ -40,9 +41,10 @@ namespace WpfGui
 
         private void InitializeTrayIcon()
         {
+            trayMenu = FindResource("trayMenu") as ContextMenu;
             _trayIcon.DoubleClick += _trayIcon_DoubleClick;
             _trayIcon.MouseDown += _trayIcon_MouseDown;
-            _trayIcon.Icon = WpfGui.Properties.Resources.ClockRunning;
+            _trayIcon.Icon = WpfGui.Properties.Resources.ClockStopped;
             _trayIcon.Visible = true;
         }
 
@@ -51,7 +53,6 @@ namespace WpfGui
             if (e.Button == System.Windows.Forms.MouseButtons.Right)
             {
                 //Open context menu
-                ContextMenu trayMenu = FindResource("trayMenu") as ContextMenu;
                 trayMenu.IsOpen = true;
             }
         }
@@ -63,21 +64,24 @@ namespace WpfGui
         }
         private void showHideMenuItem_Click(object sender, RoutedEventArgs e)
         {
-            MenuItem showHideMenuItem = e.OriginalSource as MenuItem;
             if(this.IsVisible)
             {
+                MenuItem showHideMenuItem = e.OriginalSource as MenuItem;
                 this.Hide();
                 showHideMenuItem.Header = "Show";
             }
             else
             {
-                this.Show();
-                showHideMenuItem.Header = "Hide";
+                ShowForm();
             }
         }
-        private void startStopTimerMenuItem_Click(object sender, RoutedEventArgs e)
+        private void ShowForm()
         {
-
+            MenuItem showHideMenuItem = (MenuItem)LogicalTreeHelper.FindLogicalNode(trayMenu, "startStopTimerMenuItem");
+            this.Show();
+            this.Focus();
+            this.Activate();
+            showHideMenuItem.Header = "Hide";
         }
         private void exitMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -120,8 +124,8 @@ namespace WpfGui
 
         private void lblSelectedProjectName_Click(object sender, RoutedEventArgs e)
         {
-            lblSelectedProjectName.Visibility = Visibility.Collapsed;
             projectSelector.Click();
+            lblSelectedProjectName.Visibility = Visibility.Collapsed;
         }
 
         private void projectSelector_SomethingWentWrong(object sender, SomethingWentWrongEventArgs e)
@@ -140,7 +144,7 @@ namespace WpfGui
         }
         private void EnsureErrorMessageHidden()
         {
-            lblErrorMessage.Visibility = Visibility.Hidden;
+            lblErrorMessage.Visibility = Visibility.Collapsed;
         }
         private void projectSelector_SelectedProjectChanged(object sender, EventArgs e)
         {
@@ -160,21 +164,28 @@ namespace WpfGui
             lblWorktimeElapsed.Text = worktimeString;
             lblWorktimeElapsed.ToolTip = worktimeString + " elapsed today";
         }
-        private void btnStartStopCounting_Click(object sender, RoutedEventArgs e)
+        private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
+            e.CanExecute= projectSelector.SelectedProject != null;
+        }
+        private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            MenuItem startStopMenuItem = (MenuItem)LogicalTreeHelper.FindLogicalNode(trayMenu, "startStopTimerMenuItem");
             if (projectSelector.SelectedProject.TimeTracker.Running)
             {
                 projectSelector.SelectedProject.TimeTracker.Stop();
-                btnStartStopCounting.Image = (ImageSource)new ImageSourceConverter().ConvertFromString("Images/Start.png");
+                btnStartStopCounting.Image = new BitmapImage(new Uri("Images/Start.png", UriKind.Relative));
                 btnStartStopCounting.ToolTip = "Start counting worktime";
                 _trayIcon.Icon = Properties.Resources.ClockStopped;
+                startStopMenuItem.Header = "Start";
             }
             else
             {
                 projectSelector.SelectedProject.TimeTracker.Start();
-                btnStartStopCounting.Image = (ImageSource)new ImageSourceConverter().ConvertFromString("Images/Stop.png");
+                btnStartStopCounting.Image = new BitmapImage(new Uri("Images/Stop.png", UriKind.Relative));
                 btnStartStopCounting.ToolTip = "Stop counting worktime";
                 _trayIcon.Icon = Properties.Resources.ClockRunning;
+                startStopMenuItem.Header = "Stop";
             }
         }
     }

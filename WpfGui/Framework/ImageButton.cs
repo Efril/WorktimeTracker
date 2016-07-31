@@ -69,7 +69,8 @@ namespace WpfGui.Framework
                 _isChecked = value;
                 if (originalIsChecked != _isChecked)
                 {
-                    if(!_isChecked) RevertBackground();
+                    if(_isChecked) TemporaryUpdateBackground(ClickedBackground);
+                    else RevertBackground();
                     InvalidateVisual();
                     RaiseEvent(new CheckedChangedRoutedEventArgs(CheckedChangedEvent, IsChecked));
                 }

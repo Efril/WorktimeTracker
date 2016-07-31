@@ -65,6 +65,7 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="CustomCommands.cs" />
     <Compile Include="Framework\CheckedChangedRoutedEventArgs.cs" />
     <Compile Include="Framework\Extensions.cs" />
     <Compile Include="Framework\ImageButton.cs" />
@@ -138,7 +139,7 @@
     <Resource Include="Images\Start.png" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Images\Stop.png" />
+    <Resource Include="Images\Stop.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
