@@ -86,7 +86,6 @@ namespace WpfGui
                 //In case if no project created yet switch projects combobox to edit mode to allow user to create new one
                 btnAddNewProject.IsChecked = true;
             }
-            this.Visibility = Visibility.Visible;
         }
 
         #endregion

@@ -39,10 +39,10 @@ namespace Core.Framework
 
         #endregion
 
-        public Timer(double IntervalMs)
+        public Timer(double IntervalMs, bool RaiseElapsedEventRepeatedly=false)
         {
             _timer = new System.Timers.Timer(IntervalMs);
-            _timer.AutoReset = false;
+            _timer.AutoReset = RaiseElapsedEventRepeatedly;
             _timer.Elapsed += new ElapsedEventHandler(_timer_Elapsed);
         }
 

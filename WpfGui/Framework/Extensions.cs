@@ -25,9 +25,13 @@ namespace WpfGui.Framework
             return null;
         }
 
-        public static void PerformClick(this Button btn)
+        public static void PerformClick(this Button Button)
         {
-            btn.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Button.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        }
+        public static void PerformClick(this TextBlock TextBlock)
+        {
+            TextBlock.RaiseEvent(new RoutedEventArgs(TextBlock.ClickEvent));
         }
         public static void SelectAll(this ComboBox ComboBox)
         {

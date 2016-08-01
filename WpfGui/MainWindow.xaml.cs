@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using WpfGui.Properties;
+using WpfGui.Framework;
 
 namespace WpfGui
 {
@@ -58,9 +59,7 @@ namespace WpfGui
         }
         private void _trayIcon_DoubleClick(object sender, EventArgs e)
         {
-            this.Show();
-            this.Focus();
-            this.Activate();
+            ShowForm();
         }
         private void showHideMenuItem_Click(object sender, RoutedEventArgs e)
         {
@@ -77,7 +76,7 @@ namespace WpfGui
         }
         private void ShowForm()
         {
-            MenuItem showHideMenuItem = (MenuItem)LogicalTreeHelper.FindLogicalNode(trayMenu, "startStopTimerMenuItem");
+            MenuItem showHideMenuItem = (MenuItem)LogicalTreeHelper.FindLogicalNode(trayMenu, "showHideMenuItem");
             this.Show();
             this.Focus();
             this.Activate();
@@ -85,6 +84,7 @@ namespace WpfGui
         }
         private void exitMenuItem_Click(object sender, RoutedEventArgs e)
         {
+            _trayIcon.Dispose();
             Application.Current.Shutdown();
         }
 
@@ -105,9 +105,14 @@ namespace WpfGui
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            projectSelector.Initialize(_projectsManager);
+            InitializeProjectSelectorBlock();
             
             LayoutWindow();
+        }
+        private void InitializeProjectSelectorBlock()
+        {
+            projectSelector.Initialize(_projectsManager);
+            if (projectSelector.SelectedProject != null) lblSelectedProjectName.PerformClick();
         }
         private void LayoutWindow()
         {
@@ -125,7 +130,7 @@ namespace WpfGui
         private void lblSelectedProjectName_Click(object sender, RoutedEventArgs e)
         {
             projectSelector.Click();
-            lblSelectedProjectName.Visibility = Visibility.Collapsed;
+            EnsureProjectSelectorVisible();
         }
 
         private void projectSelector_SomethingWentWrong(object sender, SomethingWentWrongEventArgs e)
@@ -134,7 +139,7 @@ namespace WpfGui
         }
         private void projectSelector_BeforeAnyAction(object sender, EventArgs e)
         {
-            EnsureErrorMessageHidden();
+            EnsureErrorMessageCollapsed();
         }
 
         private void DisplayErrorMessage(string Message)
@@ -142,7 +147,7 @@ namespace WpfGui
             lblErrorMessage.Content = Message;
             lblErrorMessage.Visibility = Visibility.Visible;
         }
-        private void EnsureErrorMessageHidden()
+        private void EnsureErrorMessageCollapsed()
         {
             lblErrorMessage.Visibility = Visibility.Collapsed;
         }
@@ -151,6 +156,7 @@ namespace WpfGui
             TimeSpan worktimeToDisplay;
             if(projectSelector.SelectedProject!=null)
             {
+                EnsureProjectSelectorVisible();
                 panelWorktimeBlock.IsEnabled = true;
                 worktimeToDisplay = projectSelector.SelectedProject.TimeTracker.GetElapsedToday();
             }
@@ -159,8 +165,20 @@ namespace WpfGui
                 panelWorktimeBlock.IsEnabled = false;
                 worktimeToDisplay = new TimeSpan();
             }
-
-            string worktimeString = worktimeToDisplay.ToString(@"hh\:mm");
+            DisplayElapsedWorktime(worktimeToDisplay);
+        }
+        private void EnsureProjectSelectorVisible()
+        {
+            projectSelector.Visibility = Visibility.Visible;
+            lblSelectedProjectName.Visibility = Visibility.Collapsed;
+        }
+        private void DisplayCurrentProjectElapsedWorktime()
+        {
+            DisplayElapsedWorktime(projectSelector.SelectedProject.TimeTracker.GetElapsedToday());
+        }
+        private void DisplayElapsedWorktime(TimeSpan ElapsedWorktime)
+        {
+            string worktimeString = ElapsedWorktime.ToString(@"hh\:mm");
             lblWorktimeElapsed.Text = worktimeString;
             lblWorktimeElapsed.ToolTip = worktimeString + " elapsed today";
         }
@@ -174,6 +192,8 @@ namespace WpfGui
             if (projectSelector.SelectedProject.TimeTracker.Running)
             {
                 projectSelector.SelectedProject.TimeTracker.Stop();
+                projectSelector.SelectedProject.TimeTracker.Heatbeat -= TimeTracker_Heatbeat;
+                DisplayCurrentProjectElapsedWorktime();
                 btnStartStopCounting.Image = new BitmapImage(new Uri("Images/Start.png", UriKind.Relative));
                 btnStartStopCounting.ToolTip = "Start counting worktime";
                 _trayIcon.Icon = Properties.Resources.ClockStopped;
@@ -181,12 +201,20 @@ namespace WpfGui
             }
             else
             {
+                projectSelector.SelectedProject.TimeTracker.Heatbeat += TimeTracker_Heatbeat;
                 projectSelector.SelectedProject.TimeTracker.Start();
                 btnStartStopCounting.Image = new BitmapImage(new Uri("Images/Stop.png", UriKind.Relative));
                 btnStartStopCounting.ToolTip = "Stop counting worktime";
                 _trayIcon.Icon = Properties.Resources.ClockRunning;
                 startStopMenuItem.Header = "Stop";
+                Properties.Settings.Default.LastProjectName = projectSelector.SelectedProject.Name;
+                Properties.Settings.Default.Save();
             }
+        }
+
+        private void TimeTracker_Heatbeat(object sender, ElapsedTodaEventArgs e)
+        {
+            this.Dispatcher.Invoke(new Action<TimeSpan>(DisplayElapsedWorktime), (object)e.ElapsedToday);
         }
     }
 }

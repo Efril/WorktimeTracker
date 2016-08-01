@@ -9,6 +9,9 @@
         Title="MainWindow" UseLayoutRounding="True" Height="141.75" Width="502" ShowInTaskbar="False" SnapsToDevicePixels="True" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2" Loaded="Window_Loaded">
     <Window.Resources>
         <ContextMenu x:Key="trayMenu">
+            <ContextMenu.CommandBindings>
+                <CommandBinding Command="local:CustomCommands.SwitchStartStopWorktimeCounting" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed"/>
+            </ContextMenu.CommandBindings>
             <MenuItem x:Name="showHideMenuItem" Header="Show" Click="showHideMenuItem_Click" />
             <MenuItem x:Name="startStopTimerMenuItem" Command="local:CustomCommands.SwitchStartStopWorktimeCounting" Header="Start"/>
             <Separator x:Name="separator" Template="{DynamicResource FineSeparator}" />
@@ -31,7 +34,7 @@
         </StackPanel>
         <Label x:Name="lblErrorMessage" DockPanel.Dock="Top" FontSize="14" Content="Empty error message" Margin="10,0,10,0" Foreground="Red" Visibility="Collapsed" Background="{x:Null}"/>
         <StackPanel x:Name="panelWorktimeBlock" DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Center" IsEnabled="False">
-            <myns:ImageButton x:Name="btnStartStopCounting" Command="local:CustomCommands.SwitchStartStopWorktimeCounting" Height="42" Width="42" Margin="0,0,10,0" Image="Images/Start.png" ToolTip="Start counting worktime"/>
+            <myns:ImageButton x:Name="btnStartStopCounting" Command="local:CustomCommands.SwitchStartStopWorktimeCounting" Height="42" Width="42" Margin="0,0,10,0" Image="Images/Start.png" ToolTip="Start counting worktime" Background="{x:Null}"/>
             <myns:TextBlock x:Name="lblWorktimeElapsed" Text="00:00" VerticalAlignment="Center" FontSize="21.333" Margin="10,0,0,0"/>
         </StackPanel>
     </DockPanel>

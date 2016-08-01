@@ -50,6 +50,8 @@
   <ItemGroup>
     <Compile Include="DayWorktimeHistory.cs" />
     <Compile Include="Framework\ApplicationServices.cs" />
+    <Compile Include="Framework\ElapsedTodaEventArgs.cs" />
+    <Compile Include="Framework\EventArgs.cs" />
     <Compile Include="Framework\Extensions.cs" />
     <Compile Include="Framework\HashCalculator.cs" />
     <Compile Include="Framework\LayoutManager.cs" />

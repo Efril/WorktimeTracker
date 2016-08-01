@@ -8,7 +8,7 @@ using System.Windows.Input;
 
 namespace WpfGui.Framework
 {
-    internal class TextBlock : System.Windows.Controls.TextBlock
+    public class TextBlock : System.Windows.Controls.TextBlock
     {
         public static readonly RoutedEvent ClickEvent = EventManager.RegisterRoutedEvent("Click", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(TextBlock));
         public event RoutedEventHandler Click
