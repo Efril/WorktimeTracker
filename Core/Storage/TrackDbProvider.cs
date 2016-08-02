@@ -45,13 +45,17 @@ namespace Core.Storage
         private static TrackDbProvider _trackDb;
         public static TrackDbProvider Get()
         {
+#if DEBUG
+            if(_trackDb==null) _trackDb= new TrackDbProvider(new SqliteDatabaseConnectionString(Path.Combine("E:\\BasicWorktimeTracker", _trackDbFileName)));
+#else
             if(_trackDb==null) _trackDb= new TrackDbProvider(new SqliteDatabaseConnectionString(Path.Combine(ApplicationServices.GetAssemblyFolderPath(), "Storage", _trackDbFileName)));
+#endif
             return _trackDb;
         }
 
-        #endregion
+#endregion
 
-        #region -> Nested Fields <-
+#region -> Nested Fields <-
 
         private readonly SqliteDatabaseConnectionString _connectionString;
         private const string _projectsTableName = "tblProjects";
@@ -60,11 +64,11 @@ namespace Core.Storage
         private readonly Dictionary<int, BulkOperation> _bulkOperations = new Dictionary<int, BulkOperation>();
         private readonly object _bulkOperationsSyncRoot = new object();
 
-        #endregion
+#endregion
 
-        #region -> Interface <-
+#region -> Interface <-
 
-        #region -> Bulk operations support <-
+#region -> Bulk operations support <-
 
         public MethodCallResult BeginBulkOperation()
         {
@@ -169,9 +173,9 @@ namespace Core.Storage
             }
         }
 
-        #endregion
+#endregion
 
-        #region -> Projects management logic <-
+#region -> Projects management logic <-
 
         public MethodCallResult GetAllProjects(out DbProject[] Projects)
         {
@@ -242,9 +246,9 @@ namespace Core.Storage
             }
         }
 
-        #endregion
+#endregion
 
-        #region -> Elapsed worktime logic <-
+#region -> Elapsed worktime logic <-
 
         public MethodCallResult GetElapsedWorktime(int ProjectId, DateTime Date, out TimeSpan ElapsedWorktime)
         {
@@ -330,11 +334,11 @@ namespace Core.Storage
 
         }*/
 
-        #endregion
+#endregion
 
-        #endregion
+#endregion
 
-        #region -> Constructors <-
+#region -> Constructors <-
 
         private TrackDbProvider(SqliteDatabaseConnectionString ConnectionString)
         {
@@ -346,6 +350,6 @@ namespace Core.Storage
             TypeMapper.Initialize("Core.Storage.DbTypes", Assembly.GetExecutingAssembly());
         }
 
-        #endregion
+#endregion
     }
 }

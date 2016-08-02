@@ -156,6 +156,7 @@ namespace WpfGui
             TimeSpan worktimeToDisplay;
             if(projectSelector.SelectedProject!=null)
             {
+                if (projectSelector.SelectedProject.TimeTracker.Running) btnStartStopCounting.PerformClick();
                 EnsureProjectSelectorVisible();
                 panelWorktimeBlock.IsEnabled = true;
                 worktimeToDisplay = projectSelector.SelectedProject.TimeTracker.GetElapsedToday();
@@ -180,7 +181,25 @@ namespace WpfGui
         {
             string worktimeString = ElapsedWorktime.ToString(@"hh\:mm");
             lblWorktimeElapsed.Text = worktimeString;
-            lblWorktimeElapsed.ToolTip = worktimeString + " elapsed today";
+            string elapsedTodayString = worktimeString + " elapsed today";
+            if (projectSelector.SelectedProject.TimeTracker.Running)
+            {
+                lblWorktimeElapsed.ToolTip = "Running: " + elapsedTodayString;
+                _trayIcon.Text = ConstantNames.ApplicationFullName + " - running - " + elapsedTodayString;
+            }
+            else
+            {
+                DisplayStoppedStatusTrayIconToolTip();
+                DisplayStoppedStatusFormClockToolTip();
+            }
+        }
+        private void DisplayStoppedStatusTrayIconToolTip()
+        {
+            _trayIcon.Text = ConstantNames.ApplicationFullName + " - stopped";
+        }
+        private void DisplayStoppedStatusFormClockToolTip()
+        {
+            lblWorktimeElapsed.ToolTip = "Stopped";
         }
         private void CommandBinding_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -193,6 +212,7 @@ namespace WpfGui
             {
                 projectSelector.SelectedProject.TimeTracker.Stop();
                 projectSelector.SelectedProject.TimeTracker.Heatbeat -= TimeTracker_Heatbeat;
+                projectSelector.SelectedProject.TimeTracker.CommitWorktimeToStorageFailed -= TimeTracker_CommitWorktimeToStorageFailed;
                 DisplayCurrentProjectElapsedWorktime();
                 btnStartStopCounting.Image = new BitmapImage(new Uri("Images/Start.png", UriKind.Relative));
                 btnStartStopCounting.ToolTip = "Start counting worktime";
@@ -202,6 +222,7 @@ namespace WpfGui
             else
             {
                 projectSelector.SelectedProject.TimeTracker.Heatbeat += TimeTracker_Heatbeat;
+                projectSelector.SelectedProject.TimeTracker.CommitWorktimeToStorageFailed += TimeTracker_CommitWorktimeToStorageFailed;
                 projectSelector.SelectedProject.TimeTracker.Start();
                 btnStartStopCounting.Image = new BitmapImage(new Uri("Images/Stop.png", UriKind.Relative));
                 btnStartStopCounting.ToolTip = "Stop counting worktime";
@@ -212,6 +233,10 @@ namespace WpfGui
             }
         }
 
+        private void TimeTracker_CommitWorktimeToStorageFailed(object sender, SomethingWentWrongEventArgs e)
+        {
+            DisplayErrorMessage(e.Message);
+        }
         private void TimeTracker_Heatbeat(object sender, ElapsedTodaEventArgs e)
         {
             this.Dispatcher.Invoke(new Action<TimeSpan>(DisplayElapsedWorktime), (object)e.ElapsedToday);

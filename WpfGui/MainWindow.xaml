@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:WpfGui"
         xmlns:myns="clr-namespace:WpfGui.Framework"
         mc:Ignorable="d"
-        Title="MainWindow" UseLayoutRounding="True" Height="141.75" Width="502" ShowInTaskbar="False" SnapsToDevicePixels="True" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2" Loaded="Window_Loaded">
+        Title="MainWindow" Style="{StaticResource {x:Type Window}}" Height="141.75" Width="502" ShowInTaskbar="False" WindowStyle="None" ResizeMode="NoResize" BorderBrush="LightGray" BorderThickness="2" Loaded="Window_Loaded">
     <Window.Resources>
         <ContextMenu x:Key="trayMenu">
             <ContextMenu.CommandBindings>
