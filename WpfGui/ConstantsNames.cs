@@ -8,6 +8,6 @@ namespace WpfGui
 {
     internal class ConstantNames
     {
-        public const string ApplicationFullName = "Basic worktime tracker.";
+        public const string ApplicationFullName = "Basic worktime tracker";
     }
 }

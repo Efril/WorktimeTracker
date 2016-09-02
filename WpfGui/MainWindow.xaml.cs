@@ -122,7 +122,7 @@ namespace WpfGui
             this.Left = locationLeft;
         }
 
-        private void imageButton_Click(object sender, RoutedEventArgs e)
+        private void btnMinimize_Click(object sender, RoutedEventArgs e)
         {
             this.Hide();
         }
@@ -240,6 +240,11 @@ namespace WpfGui
         private void TimeTracker_Heatbeat(object sender, ElapsedTodaEventArgs e)
         {
             this.Dispatcher.Invoke(new Action<TimeSpan>(DisplayElapsedWorktime), (object)e.ElapsedToday);
+        }
+
+        private void btnReport_Click(object sender, RoutedEventArgs e)
+        {
+            ReportWindow.GetReportWindow().Show();
         }
     }
 }

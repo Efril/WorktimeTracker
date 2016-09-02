@@ -9,7 +9,7 @@
             <Setter Property="Background">
                 <Setter.Value>
                     <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                        <GradientStop Color="White" Offset="0"/>
+                        <GradientStop Color="#FFFBFBFB" Offset="0"/>
                         <GradientStop Color="#FFECECEC" Offset="1"/>
                     </LinearGradientBrush>
                 </Setter.Value>

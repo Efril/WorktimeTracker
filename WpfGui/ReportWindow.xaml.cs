@@ -19,11 +19,23 @@ namespace WpfGui
     /// </summary>
     public partial class ReportWindow : Window
     {
+        private static ReportWindow _reportWindow;
+        public static ReportWindow GetReportWindow()
+        {
+            if (_reportWindow == null) _reportWindow = new ReportWindow();
+            return _reportWindow;
+        }
+
         public ReportWindow()
         {
             InitializeComponent();
 
             this.Title = ConstantNames.ApplicationFullName + " - Report";
+        }
+
+        private void CheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

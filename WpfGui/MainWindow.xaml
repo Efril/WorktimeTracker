@@ -23,8 +23,8 @@
     </Window.CommandBindings>
     <DockPanel Name="panelMain">
     <Grid DockPanel.Dock="Top">
-        <myns:ImageButton x:Name="btnMinimize" HorizontalAlignment="Right" Width="22" ToolTip="Minimize" Height="22" Image="Images/Minimize.png" VerticalAlignment="Top" Margin="0,1,1,0" Click="imageButton_Click"/>
-        <myns:ImageButton x:Name="btnReport" HorizontalAlignment="Right" Width="22" ToolTip="Report" Height="22" Image="Images/Report.png" VerticalAlignment="Top" Margin="0,1,28,0"/>
+        <myns:ImageButton x:Name="btnMinimize" HorizontalAlignment="Right" Width="22" ToolTip="Minimize" Height="22" Image="Images/Minimize.png" VerticalAlignment="Top" Margin="0,1,1,0" Click="btnMinimize_Click"/>
+        <myns:ImageButton x:Name="btnReport" HorizontalAlignment="Right" Width="22" ToolTip="Report" Height="22" Image="Images/Report.png" VerticalAlignment="Top" Margin="0,1,28,0" Click="btnReport_Click"/>
         </Grid>
         <StackPanel DockPanel.Dock="Top" Width="Auto" Height="Auto" Orientation="Vertical">
             <Label x:Name="lblProjectName"  HorizontalContentAlignment="Center" Margin="10,0,10,0" Background="{x:Null}">
