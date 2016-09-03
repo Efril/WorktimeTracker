@@ -7,16 +7,15 @@
         mc:Ignorable="d"
         Title="ReportWindow" Height="552.153" Width="577.007" Style="{StaticResource {x:Type Window}}">
     <Window.Resources>
-        <DatePicker x:Key="MonthPicker" FontSize="16">
-            <DatePicker.CalendarStyle>
-                <Style TargetType="Calendar">
-                    <Setter Property="DisplayMode" Value="Month"/>
-                </Style>
-            </DatePicker.CalendarStyle>
-        </DatePicker>
+        <Style x:Key="MonthPicker" TargetType="DatePicker">
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+        <Style x:Key="MonthCalendar" TargetType="Calendar">
+            <Setter Property="DisplayMode" Value="Month"/>
+        </Style>
     </Window.Resources>
-    <StackPanel Orientation="Vertical">
-        <DockPanel Margin="3,0,3,0">
+    <DockPanel>
+        <DockPanel Margin="3,0,3,0" DockPanel.Dock="Top">
             <Label Content="Select projects:" FontSize="16" DockPanel.Dock="Left" VerticalAlignment="Center" />
             <Framework:ImageButton ToolTip="Generate report" Width="22" Height="22" Image="Images/Start.png" DockPanel.Dock="Right" />
             <ComboBox Margin="0,0,5,0" Width="Auto" VerticalAlignment="Center">
@@ -29,9 +28,12 @@
                 </ComboBox.ItemTemplate>
             </ComboBox>
         </DockPanel>
-        <DockPanel>
-            <DatePicker/>
-        </DockPanel>
+        <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
+            <Label Content="From:" FontSize="16" Margin="70,0,0,0"/>
+            <DatePicker Style="{StaticResource MonthPicker}" CalendarStyle="{StaticResource MonthCalendar}"/>
+            <Label Content="To:" FontSize="16" Margin="10,0,0,0"/>
+            <DatePicker Style="{StaticResource MonthPicker}" CalendarStyle="{StaticResource MonthCalendar}"/>
+        </StackPanel>
         <FlowDocumentScrollViewer>
             <FlowDocument>
                 <Table BorderThickness="0.5" BorderBrush="Black" CellSpacing="0">
@@ -52,5 +54,5 @@
                 </Table>
             </FlowDocument>
         </FlowDocumentScrollViewer>
-    </StackPanel>
+    </DockPanel>
 </Window>

@@ -205,7 +205,7 @@ namespace WpfGui
         {
             e.CanExecute= projectSelector.SelectedProject != null;
         }
-        private void CommandBinding_Executed(object sender, ExecutedRoutedEventArgs e)
+        private void SwitchStartStopWorktimeCounting_Executed(object sender, ExecutedRoutedEventArgs e)
         {
             MenuItem startStopMenuItem = (MenuItem)LogicalTreeHelper.FindLogicalNode(trayMenu, "startStopTimerMenuItem");
             if (projectSelector.SelectedProject.TimeTracker.Running)

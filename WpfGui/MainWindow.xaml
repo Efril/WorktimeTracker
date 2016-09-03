@@ -10,7 +10,7 @@
     <Window.Resources>
         <ContextMenu x:Key="trayMenu">
             <ContextMenu.CommandBindings>
-                <CommandBinding Command="local:CustomCommands.SwitchStartStopWorktimeCounting" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed"/>
+                <CommandBinding Command="local:CustomCommands.SwitchStartStopWorktimeCounting" CanExecute="CommandBinding_CanExecute" Executed="SwitchStartStopWorktimeCounting_Executed"/>
             </ContextMenu.CommandBindings>
             <MenuItem x:Name="showHideMenuItem" Header="Show" Click="showHideMenuItem_Click" />
             <MenuItem x:Name="startStopTimerMenuItem" Command="local:CustomCommands.SwitchStartStopWorktimeCounting" Header="Start"/>
@@ -19,7 +19,7 @@
         </ContextMenu>
     </Window.Resources>
     <Window.CommandBindings>
-        <CommandBinding Command="local:CustomCommands.SwitchStartStopWorktimeCounting" CanExecute="CommandBinding_CanExecute" Executed="CommandBinding_Executed"/>
+        <CommandBinding Command="local:CustomCommands.SwitchStartStopWorktimeCounting" CanExecute="CommandBinding_CanExecute" Executed="SwitchStartStopWorktimeCounting_Executed"/>
     </Window.CommandBindings>
     <DockPanel Name="panelMain">
     <Grid DockPanel.Dock="Top">

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -105,7 +106,13 @@ namespace Core
 
         #endregion
 
-        public MethodCallResult GetHistory(ProjectsManager ProjectsManager, string[] Projects, DateTime From, DateTime Till, out History History)
+        private ProjectsManager ProjectsManager
+        {
+            get;
+            set;
+        }
+
+        public MethodCallResult GetHistory(string[] Projects, DateTime From, DateTime Till, out History History)
         {
             try
             {
@@ -126,7 +133,7 @@ namespace Core
                     foreach (string projectName in Projects)
                     {
                         TimeSpan elapsedWorktime;
-                        MethodCallResult elapsedWorktimeFetched = GetProjectWorktimeElapsed(projectName, historyDate, ProjectsManager, out elapsedWorktime);
+                        MethodCallResult elapsedWorktimeFetched = GetProjectWorktimeElapsed(projectName, historyDate, out elapsedWorktime);
                         if(!elapsedWorktimeFetched)
                         {
                             History = null;
@@ -201,7 +208,7 @@ namespace Core
                 }
             }
         }
-        private MethodCallResult GetProjectWorktimeElapsed(string ProjectName, DateTime Date, ProjectsManager ProjectsManager, out TimeSpan ElapsedWorktime)
+        private MethodCallResult GetProjectWorktimeElapsed(string ProjectName, DateTime Date, out TimeSpan ElapsedWorktime)
         {
             Project project;
             MethodCallResult projectFound = ProjectsManager.GetProject(ProjectName, out project);
@@ -211,6 +218,12 @@ namespace Core
                 return projectFound;
             }
             return TrackDb.GetElapsedWorktime(project.ProjectId.Value, Date, out ElapsedWorktime);
+        }
+
+        public HistoryProvider(ProjectsManager ProjectsManager)
+        {
+            Contract.Requires(ProjectsManager != null);
+            this.ProjectsManager = ProjectsManager;
         }
     }
 }
