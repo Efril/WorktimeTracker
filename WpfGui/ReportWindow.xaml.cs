@@ -1,5 +1,7 @@
-﻿using System;
+﻿using Core;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.Contracts;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,23 +21,49 @@ namespace WpfGui
     /// </summary>
     public partial class ReportWindow : Window
     {
-        private static ReportWindow _reportWindow;
-        public static ReportWindow GetReportWindow()
+        private ProjectsManager ProjectsManager
         {
-            if (_reportWindow == null) _reportWindow = new ReportWindow();
-            return _reportWindow;
+            get;
+            set;
+        }
+        private HistoryProvider HistoryProvider
+        {
+            get;
+            set;
         }
 
-        public ReportWindow()
+        private static ReportWindow _reportWindow;
+        public static ReportWindow GetReportWindow(ProjectsManager ProjectsManager)
         {
+            if (_reportWindow == null) _reportWindow = new ReportWindow(ProjectsManager);
+            _reportWindow.PopulateProjectsSelector();
+            return _reportWindow;
+        }
+        private void PopulateProjectsSelector()
+        {
+
+        }
+
+        #region -> Constructors <-
+
+        public ReportWindow(ProjectsManager ProjectsManager)
+        {
+            Contract.Requires(ProjectsManager != null);
+
             InitializeComponent();
 
+            this.ProjectsManager = ProjectsManager;
+            this.HistoryProvider = new HistoryProvider(ProjectsManager);
             this.Title = ConstantNames.ApplicationFullName + " - Report";
         }
 
-        private void CheckBox_Checked(object sender, RoutedEventArgs e)
-        {
+        #endregion
 
+        private void Window_Loaded(object sender, RoutedEventArgs e)
+        {
+            DateTime nowDate = DateTime.Now;
+            dtpFromSelector.DisplayDate = nowDate;
+            dtpToSelector.DisplayDate = nowDate;
         }
     }
 }

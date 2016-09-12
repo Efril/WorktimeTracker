@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfGui"
         mc:Ignorable="d"
-        Title="ReportWindow" Height="552.153" Width="577.007" Style="{StaticResource {x:Type Window}}">
+        Title="ReportWindow" Height="552.153" Width="577.007" Style="{StaticResource {x:Type Window}}" Loaded="Window_Loaded">
     <Window.Resources>
         <Style x:Key="MonthPicker" TargetType="DatePicker">
             <Setter Property="FontSize" Value="16"/>
@@ -18,7 +18,7 @@
         <DockPanel Margin="3,0,3,0" DockPanel.Dock="Top">
             <Label Content="Select projects:" FontSize="16" DockPanel.Dock="Left" VerticalAlignment="Center" />
             <Framework:ImageButton ToolTip="Generate report" Width="22" Height="22" Image="Images/Start.png" DockPanel.Dock="Right" />
-            <ComboBox Margin="0,0,5,0" Width="Auto" VerticalAlignment="Center">
+            <ComboBox Name="cbProjectsSelector" Margin="0,0,5,0" Width="Auto" VerticalAlignment="Center">
                 <ComboBox.ItemTemplate>
                     <DataTemplate>
                         <Grid>
@@ -30,9 +30,9 @@
         </DockPanel>
         <StackPanel Orientation="Horizontal" DockPanel.Dock="Top">
             <Label Content="From:" FontSize="16" Margin="70,0,0,0"/>
-            <DatePicker Style="{StaticResource MonthPicker}" CalendarStyle="{StaticResource MonthCalendar}"/>
+            <DatePicker Name="dtpFromSelector" Style="{StaticResource MonthPicker}" CalendarStyle="{StaticResource MonthCalendar}"/>
             <Label Content="To:" FontSize="16" Margin="10,0,0,0"/>
-            <DatePicker Style="{StaticResource MonthPicker}" CalendarStyle="{StaticResource MonthCalendar}"/>
+            <DatePicker Name="dtpToSelector" Style="{StaticResource MonthPicker}" CalendarStyle="{StaticResource MonthCalendar}"/>
         </StackPanel>
         <FlowDocumentScrollViewer>
             <FlowDocument>
